@@ -82,10 +82,21 @@ public class InteractionManager : MonoBehaviour
         nearbyInteractables.Clear();
         closestInteractable = null;
         
-        if (playerCamera == null) return;
+        if (playerCamera == null) 
+        {
+            Debug.LogWarning("[INTERACTION MANAGER DEBUG] No player camera found!");
+            return;
+        }
         
         // Find all interactables in range
         Collider[] colliders = Physics.OverlapSphere(playerCamera.transform.position, maxInteractionDistance, interactableLayer);
+        
+        // Debug every few frames to avoid spam
+        if (Time.frameCount % 30 == 0) // Every 30 frames (about twice per second at 60fps)
+        {
+            Debug.Log($"[INTERACTION MANAGER DEBUG] Camera position: {playerCamera.transform.position}, Max distance: {maxInteractionDistance}m, Layer mask: {interactableLayer.value}");
+            Debug.Log($"[INTERACTION MANAGER DEBUG] Found {colliders.Length} colliders in range");
+        }
         
         float closestDistance = float.MaxValue;
         
@@ -105,24 +116,60 @@ public class InteractionManager : MonoBehaviour
                         closestDistance = distance;
                         closestInteractable = interactable;
                     }
+                    
+                    if (Time.frameCount % 30 == 0)
+                    {
+                        Debug.Log($"[INTERACTION MANAGER DEBUG] Added interactable: {interactable.name} at {distance:F2}m");
+                    }
+                }
+            }
+            else
+            {
+                if (Time.frameCount % 30 == 0)
+                {
+                    Debug.LogWarning($"[INTERACTION MANAGER DEBUG] Collider {col.name} has no Interactable component!");
                 }
             }
         }
         
-        if (showDebugInfo && nearbyInteractables.Count > 0)
+        if (closestInteractable != null)
         {
-            Debug.Log($"Found {nearbyInteractables.Count} interactables nearby. Closest: {closestInteractable?.name}");
+            if (Time.frameCount % 30 == 0)
+            {
+                Debug.Log($"[INTERACTION MANAGER DEBUG] Closest interactable: {closestInteractable.name} at {closestDistance:F2}m");
+            }
+        }
+        else
+        {
+            if (Time.frameCount % 30 == 0)
+            {
+                Debug.Log($"[INTERACTION MANAGER DEBUG] No interactables in range");
+            }
         }
     }
     
     private void UpdateInteractionUI()
     {
-        if (interactionPromptUI == null) return;
+        if (interactionPromptUI == null) 
+        {
+            Debug.LogWarning("[INTERACTION MANAGER DEBUG] No interaction prompt UI assigned!");
+            return;
+        }
         
         bool shouldShowUI = closestInteractable != null && closestInteractable.IsPlayerInRange();
         
+        // Debug UI state changes
         if (interactionPromptUI.activeSelf != shouldShowUI)
         {
+            if (shouldShowUI)
+            {
+                Debug.Log($"[INTERACTION MANAGER DEBUG] SHOWING UI for {closestInteractable?.name}");
+            }
+            else
+            {
+                Debug.Log("[INTERACTION MANAGER DEBUG] HIDING UI - no interactable in range");
+            }
+            
             interactionPromptUI.SetActive(shouldShowUI);
         }
         
@@ -130,32 +177,44 @@ public class InteractionManager : MonoBehaviour
         {
             // You can customize this text based on the interactable type
             promptText.text = "Press E to interact";
+            
+            if (Time.frameCount % 60 == 0) // Every second
+            {
+                Debug.Log($"[INTERACTION MANAGER DEBUG] UI is visible for {closestInteractable?.name}");
+            }
         }
     }
     
     private void OnInteractPerformed(InputAction.CallbackContext context)
     {
+        Debug.Log("[INTERACTION MANAGER DEBUG] Interact input received!");
+        
         if (closestInteractable != null && closestInteractable.IsPlayerInRange())
         {
+            Debug.Log($"[INTERACTION MANAGER DEBUG] SUCCESS - Triggering interaction with {closestInteractable.name}");
             closestInteractable.TriggerInteraction();
-            
-            if (showDebugInfo)
-                Debug.Log($"Interacting with: {closestInteractable.name}");
+        }
+        else
+        {
+            if (closestInteractable == null)
+            {
+                Debug.LogWarning("[INTERACTION MANAGER DEBUG] FAILED - No closest interactable found!");
+            }
+            else if (!closestInteractable.IsPlayerInRange())
+            {
+                Debug.LogWarning($"[INTERACTION MANAGER DEBUG] FAILED - {closestInteractable.name} is not in range!");
+            }
         }
     }
     
     private void OnInteractStarted(InputAction.CallbackContext context)
     {
-        // Optional: Add visual feedback when interaction starts
-        if (showDebugInfo)
-            Debug.Log("Interaction started");
+        Debug.Log("[INTERACTION MANAGER DEBUG] Interaction input started");
     }
     
     private void OnInteractCanceled(InputAction.CallbackContext context)
     {
-        // Optional: Add visual feedback when interaction is canceled
-        if (showDebugInfo)
-            Debug.Log("Interaction canceled");
+        Debug.Log("[INTERACTION MANAGER DEBUG] Interaction input canceled");
     }
     
     // Public methods for other systems

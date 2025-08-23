@@ -50,16 +50,27 @@ public class Interactable : MonoBehaviour
     
     private void CheckPlayerDistance()
     {
-        if (playerTransform == null) return;
+        if (playerTransform == null) 
+        {
+            Debug.LogWarning($"[INTERACTION DEBUG] {gameObject.name}: No player transform assigned!");
+            return;
+        }
         
         float distance = Vector3.Distance(transform.position, playerTransform.position);
         bool wasInRange = playerInRange;
+        
+        // Debug distance every few frames
+        if (Time.frameCount % 60 == 0) // Every 60 frames (about once per second at 60fps)
+        {
+            Debug.Log($"[INTERACTION DEBUG] {gameObject.name}: Player distance = {distance:F2}m, Range = {interactionRange:F2}m, InRange = {playerInRange}");
+        }
         
         if (distance <= interactionRange)
         {
             if (!playerInRange)
             {
                 playerInRange = true;
+                Debug.Log($"[INTERACTION DEBUG] {gameObject.name}: Player ENTERED range at {Time.time:F2}s (distance: {distance:F2}m)");
                 OnPlayerEnterRange?.Invoke();
                 ShowInteractionUI(true);
             }
@@ -69,6 +80,7 @@ public class Interactable : MonoBehaviour
             if (playerInRange)
             {
                 playerInRange = false;
+                Debug.Log($"[INTERACTION DEBUG] {gameObject.name}: Player EXITED range at {Time.time:F2}s (distance: {distance:F2}m)");
                 OnPlayerExitRange?.Invoke();
                 ShowInteractionUI(false);
             }
@@ -82,10 +94,16 @@ public class Interactable : MonoBehaviour
     
     public void TriggerInteraction()
     {
+        Debug.Log($"[INTERACTION DEBUG] {gameObject.name}: TriggerInteraction called. PlayerInRange = {playerInRange}");
+        
         if (playerInRange)
         {
+            Debug.Log($"[INTERACTION DEBUG] {gameObject.name}: SUCCESS - Interaction triggered at {Time.time:F2}s!");
             OnInteractionTriggered?.Invoke();
-            Debug.Log($"Interaction triggered with {gameObject.name}");
+        }
+        else
+        {
+            Debug.LogWarning($"[INTERACTION DEBUG] {gameObject.name}: FAILED - Player not in range! Distance: {Vector3.Distance(transform.position, playerTransform?.position ?? Vector3.zero):F2}m");
         }
     }
     

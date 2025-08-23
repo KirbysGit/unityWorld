@@ -36,17 +36,37 @@ public class Door : MonoBehaviour
     
     public void ToggleDoor()
     {
-        if (isAnimating) return;
+        Debug.Log($"[DOOR DEBUG] ToggleDoor called for {gameObject.name}. Current state: {(isOpen ? "OPEN" : "CLOSED")}, Animating: {isAnimating}");
+        
+        if (isAnimating) 
+        {
+            Debug.LogWarning($"[DOOR DEBUG] {gameObject.name}: Cannot toggle - door is currently animating!");
+            return;
+        }
         
         if (isOpen)
+        {
+            Debug.Log($"[DOOR DEBUG] {gameObject.name}: Closing door...");
             CloseDoor();
+        }
         else
+        {
+            Debug.Log($"[DOOR DEBUG] {gameObject.name}: Opening door...");
             OpenDoor();
+        }
     }
     
     public void OpenDoor()
     {
-        if (isOpen || isAnimating) return;
+        Debug.Log($"[DOOR DEBUG] {gameObject.name}: OpenDoor called. Current state: {(isOpen ? "OPEN" : "CLOSED")}, Animating: {isAnimating}");
+        
+        if (isOpen || isAnimating) 
+        {
+            Debug.LogWarning($"[DOOR DEBUG] {gameObject.name}: Cannot open - door is {(isOpen ? "already open" : "currently animating")}!");
+            return;
+        }
+        
+        Debug.Log($"[DOOR DEBUG] {gameObject.name}: Starting open animation from {closeAngle}° to {openAngle}°");
         
         if (animationCoroutine != null)
             StopCoroutine(animationCoroutine);
@@ -55,12 +75,27 @@ public class Door : MonoBehaviour
         
         // Play open sound
         if (audioSource && openSound)
+        {
             audioSource.PlayOneShot(openSound);
+            Debug.Log($"[DOOR DEBUG] {gameObject.name}: Playing open sound");
+        }
+        else
+        {
+            Debug.LogWarning($"[DOOR DEBUG] {gameObject.name}: No audio source or open sound assigned!");
+        }
     }
     
     public void CloseDoor()
     {
-        if (!isOpen || isAnimating) return;
+        Debug.Log($"[DOOR DEBUG] {gameObject.name}: CloseDoor called. Current state: {(isOpen ? "OPEN" : "CLOSED")}, Animating: {isAnimating}");
+        
+        if (!isOpen || isAnimating) 
+        {
+            Debug.LogWarning($"[DOOR DEBUG] {gameObject.name}: Cannot close - door is {(!isOpen ? "already closed" : "currently animating")}!");
+            return;
+        }
+        
+        Debug.Log($"[DOOR DEBUG] {gameObject.name}: Starting close animation from {openAngle}° to {closeAngle}°");
         
         if (animationCoroutine != null)
             StopCoroutine(animationCoroutine);
@@ -69,11 +104,20 @@ public class Door : MonoBehaviour
         
         // Play close sound
         if (audioSource && closeSound)
+        {
             audioSource.PlayOneShot(closeSound);
+            Debug.Log($"[DOOR DEBUG] {gameObject.name}: Playing close sound");
+        }
+        else
+        {
+            Debug.LogWarning($"[DOOR DEBUG] {gameObject.name}: No audio source or close sound assigned!");
+        }
     }
     
     private IEnumerator AnimateDoor(float startAngle, float endAngle, bool opening)
     {
+        Debug.Log($"[DOOR DEBUG] {gameObject.name}: Animation started - {(opening ? "opening" : "closing")} from {startAngle}° to {endAngle}° over {animationDuration}s");
+        
         isAnimating = true;
         float elapsedTime = 0f;
         
@@ -86,6 +130,12 @@ public class Door : MonoBehaviour
             float currentAngle = Mathf.Lerp(startAngle, endAngle, curveValue);
             SetDoorRotation(currentAngle);
             
+            // Debug progress every 10 frames to avoid spam
+            if (Time.frameCount % 10 == 0)
+            {
+                Debug.Log($"[DOOR DEBUG] {gameObject.name}: Animation progress: {elapsedTime:F2}s / {animationDuration}s ({normalizedTime * 100:F1}%) - Angle: {currentAngle:F1}°");
+            }
+            
             yield return null;
         }
         
@@ -95,10 +145,10 @@ public class Door : MonoBehaviour
         isOpen = opening;
         isAnimating = false;
         
+        Debug.Log($"[DOOR DEBUG] {gameObject.name}: Animation completed! Door is now {(opening ? "OPEN" : "CLOSED")}");
+        
         // Notify other systems
         OnDoorStateChanged?.Invoke(isOpen);
-        
-        Debug.Log($"Door {(opening ? "opened" : "closed")}");
     }
     
     private void SetDoorRotation(float angle)
