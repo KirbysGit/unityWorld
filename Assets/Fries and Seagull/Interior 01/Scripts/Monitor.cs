@@ -25,7 +25,6 @@ namespace Seagull.Interior_01 {
         [SerializeField] private MeshRenderer indicatorLightBoxRenderer;
         [SerializeField] private MeshRenderer spotLightBoxRenderer;
         [SerializeField] private GameObject spotLight;
-        [SerializeField] private ComputerScreen computerScreen;
         
         public void turnOn() {
             spotLightBoxRenderer.material.color = new Color(159 / 255f, 117 / 255f, 248 / 255f, 1);
@@ -44,9 +43,7 @@ namespace Seagull.Interior_01 {
             indicatorLightBoxRenderer.material.color = new Color(12/255f, 12/255f, 12/255f,1);
             indicatorLightBoxRenderer.material.DisableKeyword("_EMISSION");
             spotLight.SetActive(false);
-            if (computerScreen != null) {
-                computerScreen.TurnOffScreen();
-            }
+
             isInterrupted = true;
         }
         
@@ -54,9 +51,7 @@ namespace Seagull.Interior_01 {
             yield return new WaitForSeconds(delay);
             if (isInterrupted) yield break;
             if (currentTurnOnCount != turnOnCount) yield break;
-            if (computerScreen != null) {
-                computerScreen.TurnOnScreen();
-            }
+            // ComputerScreen functionality removed - just handle lights for now
         }
     }
     

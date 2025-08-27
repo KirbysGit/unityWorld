@@ -59,7 +59,7 @@ namespace BrokenVector.LowPolyFencePack
             animator = GetComponent<Animation>();
             if (animator == null)
             {
-                Debug.LogError("Every DoorController needs an Animator.");
+                // Debug.LogError("Every DoorController needs an Animator.");
                 return;
             }
             

@@ -24,18 +24,18 @@ public class Door : MonoBehaviour
     private void Awake(){
         StartRotation = transform.rotation.eulerAngles;
         Forward = transform.right;
-        Debug.Log($"Door {gameObject.name} initialized. Start rotation: {StartRotation}, Forward: {Forward}");
+        //Debug.Log($"Door {gameObject.name} initialized. Start rotation: {StartRotation}, Forward: {Forward}");
     }
 
     public void Open(Vector3 UserPosition){
-        Debug.Log($"Door.Open() called from position {UserPosition}");
+        //Debug.Log($"Door.Open() called from position {UserPosition}");
         if (!isOpen){
             if (AnimationCoroutine != null){
                 StopCoroutine(AnimationCoroutine);
             }
             if (isRotatingDoor){
                 float dot = Vector3.Dot(Forward, (UserPosition - transform.position).normalized);
-                Debug.Log($"Dot Product: {dot.ToString("N3")}");
+                //Debug.Log($"Dot Product: {dot.ToString("N3")}");
                 AnimationCoroutine = StartCoroutine(DoRotationOpen(dot));
             }
         }
@@ -65,11 +65,11 @@ public class Door : MonoBehaviour
             yield return null;
             time += Time.deltaTime * speed;
         }
-        Debug.Log("Door open animation complete");
+        //Debug.Log("Door open animation complete");
     }
 
     public void Close(){
-        Debug.Log("Door.Close() called");
+        //Debug.Log("Door.Close() called");
         if(isOpen){
             if(AnimationCoroutine != null){
                 StopCoroutine(AnimationCoroutine);
@@ -79,12 +79,12 @@ public class Door : MonoBehaviour
             }
         }
         else {
-            Debug.Log("Door is already closed!");
+            //Debug.Log("Door is already closed!");
         }
     }
 
     private IEnumerator DoRotationClose(){
-        Debug.Log("Starting door close animation");
+        //Debug.Log("Starting door close animation");
         Quaternion startRotation = transform.rotation;
         Quaternion endRotation = Quaternion.Euler(StartRotation);
 
@@ -97,6 +97,6 @@ public class Door : MonoBehaviour
             time += Time.deltaTime * speed;
             
         }
-        Debug.Log("Door close animation complete");
+        //Debug.Log("Door close animation complete");
     }
 }

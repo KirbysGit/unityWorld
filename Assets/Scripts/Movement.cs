@@ -8,6 +8,8 @@ public class Movement : MonoBehaviour
     [SerializeField] bool cursorLock = true;                           // Lock / Hide Cursor For mouseLook.
     [SerializeField] float mouseSensitivity = 3.5f;                    // Multiplier For Mouse Sensitivity.
     [SerializeField] float Speed = 6.0f;                               // Movement Speed.
+    [SerializeField] float sprintMultiplier = 1.8f;                    // Speed multiplier when sprinting.
+    [SerializeField] Key sprintKey = Key.LeftShift;                    // Key to hold for sprinting.
     [SerializeField][Range(0.0f, 0.5f)] float moveSmoothTime = 0.3f;   // Smooth Time For Movement Input.
     [SerializeField] float gravity = -30f;                             // Downward Acceleration.
     [SerializeField] float jumpHeight = 6f;                            // Jump Height.
@@ -46,15 +48,19 @@ public class Movement : MonoBehaviour
     CharacterController controller; // "Capsule Mover"
     Vector2 currentDir;             // Smoothed Dir (WASD But Like Eased Out)
     Vector2 currentDirVelocity;     // Used For SmoothDamp.
+    float currentSpeed;             // Current movement speed (base or sprint).
 
     // Debug.
-    bool debug = true; // Set to true to enable jump debugging
+    bool debug = false; // Set to true to enable jump debugging
 
     // Start. Called Before First Frame.
     private void Start()
     {
         // Gets GameObject The Script Is Attached To.
         controller = GetComponent<CharacterController>();
+
+        // Initialize current speed to base speed.
+        currentSpeed = Speed;
 
         // Locks Cursor.
         if (cursorLock)
@@ -92,6 +98,11 @@ public class Movement : MonoBehaviour
     // Updates Mouse Look.
     void UpdateMouse()
     {
+        // Only allow mouse look if the player camera is ACTIVE (enabled)
+        if (playerCam == null || !playerCam.gameObject.activeInHierarchy) {
+            return; // Exit early if camera is not active
+        }
+        
         // Gets Mouse Delta. (Reads How Far Mouse Has Moved Since Last Frame)
         Vector2 targetMouseDelta = new Vector2(Mouse.current.delta.ReadValue().x, Mouse.current.delta.ReadValue().y);
 
@@ -114,6 +125,11 @@ public class Movement : MonoBehaviour
     // Updates Movement.
     void UpdateMove()
     {
+        // Only allow movement if the player camera is ACTIVE (enabled)
+        if (playerCam == null || !playerCam.gameObject.activeInHierarchy) {
+            return; // Exit early if camera is not active
+        }
+        
         // Checks If GroundCheck Is Null.
         // (Casting A Small Invisible Sphere To Check If Touching Any Colliders On Ground)
         if (groundCheck != null)
@@ -142,6 +158,7 @@ public class Movement : MonoBehaviour
         float verticalInput = 0f;
 
         bool jump = false;
+        bool isSprinting = false;
         
         // Gets Input Values.
         if (Keyboard.current != null)
@@ -152,6 +169,7 @@ public class Movement : MonoBehaviour
             if (Keyboard.current.sKey.isPressed) verticalInput -= 1f;   // Down.
 
             jump = Keyboard.current.spaceKey.wasPressedThisFrame;
+            isSprinting = Keyboard.current[sprintKey].isPressed; // Check if sprint key is held.
             
             // Debug jump input
             if (jump)
@@ -178,11 +196,21 @@ public class Movement : MonoBehaviour
         // Smooths Current Direction.
         currentDir = Vector2.SmoothDamp(currentDir, targetDir, ref currentDirVelocity, moveSmoothTime);
 
+        // Handle sprinting - update current speed based on sprint state.
+        if (isSprinting && (Mathf.Abs(horizontalInput) > 0.1f || Mathf.Abs(verticalInput) > 0.1f))
+        {
+            currentSpeed = Speed * sprintMultiplier; // Apply sprint multiplier when moving and sprinting.
+        }
+        else
+        {
+            currentSpeed = Speed; // Return to base speed when not sprinting or not moving.
+        }
+
         // Gravity. (Each Frame Add Gravity To Vertical Velocity)
         velocityY += gravity * Time.deltaTime;
 
         // Velocity. (Direction * Speed)
-        Vector3 velocity = (transform.forward * currentDir.y + transform.right * currentDir.x) * Speed;
+        Vector3 velocity = (transform.forward * currentDir.y + transform.right * currentDir.x) * currentSpeed;
         velocity.y = velocityY;
         
         // Moves Player.

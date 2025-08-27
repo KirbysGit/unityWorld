@@ -75,7 +75,6 @@
     <Compile Include="Assets\Fries and Seagull\Interior 01\Scripts\Setup\UrpSetup.cs" />
     <Compile Include="Assets\Fries and Seagull\Interior 01\Scripts\Utility\YureiPostProcessorIdentifier.cs" />
     <Compile Include="Assets\Scripts\PlayerActions.cs" />
-    <Compile Include="Assets\Scripts\ComputerScreen.cs" />
     <Compile Include="Assets\Fries and Seagull\Interior 01\Scripts\Kettle.cs" />
     <Compile Include="Assets\Fries and Seagull\Interior 01\Scripts\AirConditioner.cs" />
     <Compile Include="Assets\Fries and Seagull\Interior 01\Scripts\Utility\TimeZoneEnum.cs" />
@@ -91,6 +90,7 @@
     <Compile Include="Assets\Scripts\Door.cs" />
     <Compile Include="Assets\Fries and Seagull\Interior 01\Scripts\Utility\Inspector\YureiInspector.cs" />
     <Compile Include="Assets\Fries and Seagull\Interior 01\Scripts\Utility\TurnOnAble.cs" />
+    <Compile Include="Assets\Scripts\MonitorView.cs" />
     <Compile Include="Assets\Fries and Seagull\Interior 01\Scripts\Utility\YureiManagerURP.cs" />
     <Compile Include="Assets\Fries and Seagull\Interior 01\Scripts\Suitcase.cs" />
   </ItemGroup>
