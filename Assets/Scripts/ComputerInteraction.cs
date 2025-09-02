@@ -19,6 +19,7 @@ namespace Seagull.Interior_01 {
         [Header("Player Control")]
         [SerializeField] private GameObject playerObject;
         [SerializeField] private Movement movementScript;
+        [SerializeField] private GameObject playerModel;  // The visual model/body of the player
 
         
         private bool playerInRange = false;
@@ -143,9 +144,14 @@ namespace Seagull.Interior_01 {
                 movementScript.enabled = false;
             }
             
+            // Hide player model when sitting
+            if (playerModel != null) {
+                playerModel.SetActive(false);
+            }
+            
             // Enable monitor camera movement after interaction
             if (monitorCamLook != null) {
-                monitorCamLook.EnableMovement();
+                monitorCamLook.SetAllowLook(true);
             }
             
             isSitting = true;
@@ -166,6 +172,16 @@ namespace Seagull.Interior_01 {
             }
             if (movementScript != null) {
                 movementScript.enabled = true;
+            }
+            
+            // Show player model when standing up
+            if (playerModel != null) {
+                playerModel.SetActive(true);
+            }
+            
+            // Disable monitor camera movement when standing up
+            if (monitorCamLook != null) {
+                monitorCamLook.SetAllowLook(false);
             }
 
             isSitting = false;
