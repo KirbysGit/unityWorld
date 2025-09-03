@@ -62,6 +62,9 @@ public class Movement : MonoBehaviour
         // Initialize current speed to base speed.
         currentSpeed = Speed;
 
+        // Initialize camera state - ensure player camera is active by default
+        InitializeCameraState();
+
         // Locks Cursor.
         if (cursorLock)
         {
@@ -101,6 +104,14 @@ public class Movement : MonoBehaviour
         // Only allow mouse look if the player camera is ACTIVE (enabled)
         if (playerCam == null || !playerCam.gameObject.activeInHierarchy) {
             return; // Exit early if camera is not active
+        }
+        
+        // Debug camera state if there are issues
+        if (playerCam != null) {
+            Camera playerCamera = playerCam.GetComponent<Camera>();
+            if (playerCamera != null && !playerCamera.enabled) {
+                Debug.LogWarning($"Movement: PlayerCam is disabled but gameObject is active! Camera: {playerCamera.name}");
+            }
         }
         
         // Gets Mouse Delta. (Reads How Far Mouse Has Moved Since Last Frame)
@@ -264,6 +275,24 @@ public class Movement : MonoBehaviour
         if (Keyboard.current != null && Keyboard.current.cKey.wasPressedThisFrame)
         {
             SwitchCamera();
+        }
+    }
+
+    // Initialize camera state at startup
+    void InitializeCameraState()
+    {
+        // Set initial camera state based on isPlayerCamActive
+        if (isPlayerCamActive)
+        {
+            // Start with PlayerCam (Inside Player)
+            playerCam.gameObject.SetActive(true);
+            threeDCam.gameObject.SetActive(false);
+        }
+        else
+        {
+            // Start with 3DCam (Outside Player)
+            playerCam.gameObject.SetActive(false);
+            threeDCam.gameObject.SetActive(true);
         }
     }
 

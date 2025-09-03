@@ -113,4 +113,11 @@ public class MonitorButton : MonoBehaviour
             GUI.Label(new Rect(Screen.width / 2 - 100, Screen.height - 50, 200, 20), buttonPrompt);
         }
     }
+    
+    // Method to set monitor state from MonitorFocus
+    public void SetMonitorState(bool on)
+    {
+        isMonitorOn = on;
+        UpdateButtonVisuals();
+    }
 }

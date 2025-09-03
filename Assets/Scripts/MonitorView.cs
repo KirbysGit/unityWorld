@@ -31,6 +31,10 @@ public class MonitorCamLook : MonoBehaviour
     {
         // Return If Not Allowing Look Or Mouse Is Not Active.
         if (!allowLook || Mouse.current == null) return;
+        
+        // Check if the camera is enabled - don't accept input if camera is disabled
+        Camera cam = GetComponent<Camera>();
+        if (cam != null && !cam.enabled) return;
 
         // Check if we're in focused mode (camera movement disabled)
         if (isFocused)

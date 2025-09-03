@@ -25,7 +25,6 @@ namespace Seagull.Interior_01 {
         private bool playerInRange = false;
         private bool isSitting = false;
         private bool isTransitioning = false;
-        private Camera originalCamera;
         
 
         // -------------------------------------------------------- Before First Frame.
@@ -132,62 +131,36 @@ namespace Seagull.Interior_01 {
         System.Collections.IEnumerator TransitionToSitting() {
             isTransitioning = true;
             
-            // Store original camera reference
-            originalCamera = playerCamera;
-            
-            if (monitorCamera != null) {
-                playerCamera.enabled = false;
-                monitorCamera.enabled = true;
-            }
-
-            if (movementScript != null) {
-                movementScript.enabled = false;
-            }
-            
-            // Hide player model when sitting
-            if (playerModel != null) {
-                playerModel.SetActive(false);
-            }
-            
-            // Enable monitor camera movement after interaction
-            if (monitorCamLook != null) {
-                monitorCamLook.SetAllowLook(true);
-            }
+            playerCamera.enabled = false;
+            monitorCamera.enabled = true;
+            movementScript.enabled = false;
+            playerModel.SetActive(false);
+            monitorCamLook.SetAllowLook(true);
             
             isSitting = true;
             isTransitioning = false;
             
-            yield return null; // Coroutine must yield
+            yield return null;
         }
         
         System.Collections.IEnumerator TransitionToStanding() {
             isTransitioning = true;
+        
+            monitorCamera.enabled = false;
             
-            // Switch back to player camera - THAT'S IT!
-            if (monitorCamera != null) {
-                monitorCamera.enabled = false;
-            }
-            if (originalCamera != null) {
-                originalCamera.enabled = true;
-            }
-            if (movementScript != null) {
-                movementScript.enabled = true;
-            }
+            // Enable Player Camera
+            playerCamera.enabled = true;
+            playerCamera.gameObject.SetActive(true);
             
-            // Show player model when standing up
-            if (playerModel != null) {
-                playerModel.SetActive(true);
-            }
-            
-            // Disable monitor camera movement when standing up
-            if (monitorCamLook != null) {
-                monitorCamLook.SetAllowLook(false);
-            }
+            movementScript.enabled = true;
+            playerModel.SetActive(true);
+            monitorCamLook.SetAllowLook(false);
 
             isSitting = false;
             isTransitioning = false;
             
-            yield return null; // Coroutine must yield
+            // Wait A Frame And Check Camera States Again
+            yield return null;
         }
         
         public bool IsPlayerSitting() {
@@ -196,6 +169,11 @@ namespace Seagull.Interior_01 {
         
         public bool IsPlayerInRange() {
             return playerInRange;
+        }
+        
+        // Method to set sitting state (for MonitorFocus coordination)
+        public void SetSittingState(bool sitting) {
+            isSitting = sitting;
         }
     }
 }
