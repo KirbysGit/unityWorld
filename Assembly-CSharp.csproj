@@ -77,11 +77,13 @@
     <Compile Include="Assets\Fries and Seagull\Interior 01\Scripts\Setup\BrpSetup.cs" />
     <Compile Include="Assets\Fries and Seagull\Interior 01\Scripts\Setup\UrpSetup.cs" />
     <Compile Include="Assets\Scripts\MonitorController.cs" />
+    <Compile Include="Assets\Scripts\SkateGame.cs" />
     <Compile Include="Assets\Fries and Seagull\Interior 01\Scripts\Utility\YureiPostProcessorIdentifier.cs" />
     <Compile Include="Assets\Scripts\PlayerActions.cs" />
     <Compile Include="Assets\Fries and Seagull\Interior 01\Scripts\Kettle.cs" />
     <Compile Include="Assets\Fries and Seagull\Interior 01\Scripts\AirConditioner.cs" />
     <Compile Include="Assets\Fries and Seagull\Interior 01\Scripts\Utility\TimeZoneEnum.cs" />
+    <Compile Include="Assets\Scripts\MonitorUI.cs" />
     <Compile Include="Assets\Scripts\MonitorButton.cs" />
     <Compile Include="Assets\Fences\LowPolyFencePack\Scripts\DoorToggle.cs" />
     <Compile Include="Assets\Fries and Seagull\Interior 01\Scripts\SampleScene.cs" />
@@ -116,6 +118,8 @@
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Surface-Mobile.shader" />
     <None Include="Assets\Drones\Characters\Drone Companions Starter Pack\Standard Assets\Effects\GlassRefraction\Shaders\GlassStainedBumpDistort.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\SDFFunctions.hlsl" />
+    <None Include="Assets\Shaders\RoundedCornerShader.shader" />
+    <None Include="Assets\Pixel Font - Tripfive\_README.txt" />
     <None Include="Assets\Windy\Shaders\Wind\Assets\Documentation\LPW_Log.txt" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Surface.shader" />
     <None Include="Assets\TextMesh Pro\Sprites\EmojiOne Attribution.txt" />
@@ -1251,10 +1255,6 @@
       <HintPath>Library\ScriptAssemblies\Unity.Recorder.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary">
-      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Unity.TerrainTools">
       <HintPath>Library\ScriptAssemblies\Unity.TerrainTools.dll</HintPath>
       <Private>False</Private>
@@ -1265,6 +1265,10 @@
     </Reference>
     <Reference Include="Unity.VisualScripting.Flow">
       <HintPath>Library\ScriptAssemblies\Unity.VisualScripting.Flow.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary">
+      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Unity.TextMeshPro.Editor">

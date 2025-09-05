@@ -40,6 +40,9 @@ public class MonitorFocus : MonoBehaviour
     [SerializeField] Sprite monitorOnSprite;        // Background sprite for monitor on
     [SerializeField] Image canvasBackground;        // Reference to the Image component on canvas
     
+    [Header("Game Integration")]
+    [SerializeField] SkateGame skateGame;           // Reference to the skate game script
+    
 
     private bool isFocused = false; // If You Are Focused On The Monitor.
     private bool isTransitioning = false; // If You Are Transitioning Between Focus And Not Focus.
@@ -136,16 +139,23 @@ public class MonitorFocus : MonoBehaviour
         // If We're Focused, Don't Check For Hover - Cursor Can Move Freely.
         if (isFocused)
         {
-            // Check For Click To Unfocus.
-            if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+                    // Check For Click To Unfocus (only if not clicking on app icon)
+        if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+        {
+            // Check if clicking on app icon first
+            if (CheckAppIconClick())
             {
-                if (isFocused)
-                {
-                    StopFocus();
-                } else {
-                    StartFocus();
-                }
+                // App icon was clicked, don't unfocus
+                return;
             }
+            
+            if (isFocused)
+            {
+                StopFocus();
+            } else {
+                StartFocus();
+            }
+        }
             return;
         }
         
@@ -189,6 +199,33 @@ public class MonitorFocus : MonoBehaviour
         }
         
         isHoveringLastFrame = isHovering;
+    }
+    
+    bool CheckAppIconClick()
+    {
+        // Only check if game is not active and skateGame is assigned
+        if (skateGame == null || skateGame.IsGameActive())
+        {
+            return false;
+        }
+        
+        // Create a ray from the center of the monitor camera
+        Ray ray = monitorCamera.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
+        RaycastHit hit;
+        
+        // Check if raycast hits the app icon collider
+        if (Physics.Raycast(ray, out hit))
+        {
+            // Check if the hit object has the SkateGame component (app icon)
+            if (hit.collider.GetComponent<SkateGame>() != null)
+            {
+                Debug.Log("App icon clicked!");
+                skateGame.OnAppIconClick();
+                return true;
+            }
+        }
+        
+        return false;
     }
     
     void StartFocus()
@@ -367,6 +404,14 @@ public class MonitorFocus : MonoBehaviour
         // Update UI elements
         turnOnPromptCanvas.gameObject.SetActive(isFocused && !on);
         customCursor.SetActive(isFocused && on);
+    }
+    
+    public void OnGameBack()
+    {
+        // Called when returning from the game
+        Debug.Log("Returned from game to monitor");
+        // The game canvas will be hidden by SkateGame script
+        // Monitor canvas will be shown by SkateGame script
     }
     
     void StartFocusModeImmediately()

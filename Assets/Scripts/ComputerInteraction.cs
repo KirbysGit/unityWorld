@@ -55,8 +55,17 @@ namespace Seagull.Interior_01 {
         }
         
         void CheckPlayerProximity() {
+            // Check if playerObject is assigned
+            if (playerObject == null) {
+                Debug.LogWarning("ComputerInteraction: playerObject is null!");
+                return;
+            }
+
             // Set Distance Between Player And Computer.
             float distance = Vector3.Distance(transform.position, playerObject.transform.position);
+            
+            // Debug the distance
+            Debug.Log($"Distance to player: {distance}, Interaction range: {interactionRange}");
 
             // Bool For If Player Was In Range.
             bool wasInRange = playerInRange;
@@ -66,15 +75,14 @@ namespace Seagull.Interior_01 {
 
             // If Player Entered Range.
             if (playerInRange && !wasInRange) {
-                // Show Prompt.
-                ShowInteractionPrompt();
-
+                Debug.Log("Player entered range - showing prompt");
                 // If Player Is Not Sitting.
                 if (!isSitting) {
                     // Show Prompt.
                     ShowInteractionPrompt();
                 }
             } else if (!playerInRange && wasInRange) {
+                Debug.Log("Player left range - hiding prompt");
                 // Hide Prompt.
                 if (!isSitting) {
                     HideInteractionPrompt();

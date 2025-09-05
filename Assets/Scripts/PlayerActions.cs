@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class PlayerActions : MonoBehaviour
 {
-    [SerializeField] private TextMeshProUGUI UseTest;
+    [SerializeField] private GameObject UseTest;
     [SerializeField] private Transform Camera;
     [SerializeField] private float MaxUseDistance = 5f;
     [SerializeField] private LayerMask UseLayers;
@@ -36,25 +36,30 @@ public class PlayerActions : MonoBehaviour
             
             if (hit.collider.TryGetComponent<Door>(out Door door)){
                 Debug.Log("Door found in Update - showing UI");
-                if (door.isOpen){
-                    UseTest.SetText("Close \"E\"");
-                    Debug.Log("Set text to: Close \"E\"");
-                }
-                else {
-                    UseTest.SetText("Open \"E\"");
-                    Debug.Log("Set text to: Open \"E\"");
+                
+                // Get the TextMeshPro component from the GameObject
+                TextMeshPro textMesh = UseTest.GetComponent<TextMeshPro>();
+                if (textMesh != null){
+                    if (door.isOpen){
+                        textMesh.SetText("Close \"E\"");
+                        Debug.Log("Set text to: Close \"E\"");
+                    }
+                    else {
+                        textMesh.SetText("Open \"E\"");
+                        Debug.Log("Set text to: Open \"E\"");
+                    }
                 }
                 
-                UseTest.gameObject.SetActive(true);
-                Debug.Log($"UI Text active: {UseTest.gameObject.activeInHierarchy}, Text: '{UseTest.text}', Color: {UseTest.color}");
+                UseTest.SetActive(true);
+                Debug.Log($"UI Text active: {UseTest.activeInHierarchy}");
             }
             else {
                 Debug.Log("No Door component found in Update");
-                UseTest.gameObject.SetActive(false);
+                UseTest.SetActive(false);
             }
         }
         else {
-            UseTest.gameObject.SetActive(false);
+            UseTest.SetActive(false);
         }
     }
 }
