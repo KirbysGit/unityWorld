@@ -60,10 +60,11 @@ public class MonitorFocus : MonoBehaviour
     
     void Start()
     {
-        // Get Monitor Cam.
+        // Ensure Monitor Cam is assigned - don't default to Camera.main
         if (monitorCamera == null)
         {
-            monitorCamera = Camera.main;
+            Debug.LogError("MonitorFocus: monitorCamera is not assigned! Please assign it in the inspector.");
+            return;
         }
         
         // Store Original Camera State. (Like the Center Position, Rotation, And FOV.)
@@ -88,6 +89,13 @@ public class MonitorFocus : MonoBehaviour
         if (col == null)
         {
             // No Collider Found - Mouse Hover Won't Work Without A Collider.
+        }
+        
+        // Ensure 3D camera is active by default (don't interfere with it)
+        if (threeDCamera != null && !startInFocusMode)
+        {
+            threeDCamera.enabled = true;
+            threeDCamera.gameObject.SetActive(true);
         }
         
         // Start In Focus Mode If Enabled.
@@ -243,13 +251,31 @@ public class MonitorFocus : MonoBehaviour
         isFocused = true;
         isTransitioning = true;
         
+        // Disable 3D Camera and enable monitor camera when focusing
+        if (threeDCamera != null) {
+            threeDCamera.enabled = false;
+            threeDCamera.gameObject.SetActive(false);
+        }
+        if (monitorCamera != null) {
+            monitorCamera.enabled = true;
+        }
+        
+        // Disable Movement Script when focused
+        if (movementScript != null) {
+            movementScript.enabled = false;
+        }
+        
         // Disable Monitor Camera Movement When Focused. (Can't Look Around In Monitor View.)
-        monitorCamLook.SetFocused(true);
+        if (monitorCamLook != null) {
+            monitorCamLook.SetFocused(true);
+        }
         
         // Store Current Camera State. (Like the Center Position, Rotation, And FOV.)
-        originalCameraPosition = monitorCamera.transform.position;
-        originalCameraRotation = monitorCamera.transform.rotation;
-        originalFOV = monitorCamera.fieldOfView;
+        if (monitorCamera != null) {
+            originalCameraPosition = monitorCamera.transform.position;
+            originalCameraRotation = monitorCamera.transform.rotation;
+            originalFOV = monitorCamera.fieldOfView;
+        }
         
         // Smooth Focus To Target.
         StartCoroutine(SmoothFocusToTarget());
@@ -267,9 +293,25 @@ public class MonitorFocus : MonoBehaviour
         isFocused = false;
         isTransitioning = true;
         
+        // Re-enable 3D Camera and disable monitor camera when stopping focus
+        if (threeDCamera != null) {
+            threeDCamera.enabled = true;
+            threeDCamera.gameObject.SetActive(true);
+        }
+        if (monitorCamera != null) {
+            monitorCamera.enabled = false;
+        }
+        
+        // Re-enable Movement Script when not focused
+        if (movementScript != null) {
+            movementScript.enabled = true;
+        }
+        
         // Re-enable monitor camera movement when not focused. (Can Look Around In Monitor View.)
-        monitorCamLook.SetFocused(false);
-        monitorCamLook.SetAllowLook(true);
+        if (monitorCamLook != null) {
+            monitorCamLook.SetFocused(false);
+            monitorCamLook.SetAllowLook(true);
+        }
         
         // Smooth Return To Original View.
         StartCoroutine(SmoothReturnToOriginal());
@@ -416,21 +458,29 @@ public class MonitorFocus : MonoBehaviour
     
     void StartFocusModeImmediately()
     {
-        // Disable Player Cameras And Enable Monitor Camera.
-        playerCamera.enabled = false;
-        playerCamera.gameObject.SetActive(false);
-        threeDCamera.enabled = false;
-        threeDCamera.gameObject.SetActive(false);
-        monitorCamera.enabled = true;
+        // Disable 3D Camera and enable monitor camera
+        if (threeDCamera != null) {
+            threeDCamera.enabled = false;
+            threeDCamera.gameObject.SetActive(false);
+        }
+        if (monitorCamera != null) {
+            monitorCamera.enabled = true;
+        }
         
         // Disable Movement Script
-        movementScript.enabled = false;
+        if (movementScript != null) {
+            movementScript.enabled = false;
+        }
         
         // Set Up ComputerInteraction
-        computerInteraction.SetSittingState(true);
+        if (computerInteraction != null) {
+            computerInteraction.SetSittingState(true);
+        }
         
         // Enable Monitor Camera Look Controls
-        monitorCamLook.SetAllowLook(true);
+        if (monitorCamLook != null) {
+            monitorCamLook.SetAllowLook(true);
+        }
         
         // Start focus mode automatically
         StartFocus();

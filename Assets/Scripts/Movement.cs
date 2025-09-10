@@ -20,7 +20,7 @@ public class Movement : MonoBehaviour
     [SerializeField] float groundCheckRadius = 0.2f; // Sphere Radius For Checking Ground.
 
     // Cameras.
-    [SerializeField] Transform playerCam;  // Player Camera (First Person).
+    // [SerializeField] Transform playerCam;  // Player Camera (First Person) - DISABLED.
     [SerializeField] Transform threeDCam;  // External Camera (Third Person).
 
     // Simple Animation System
@@ -39,10 +39,10 @@ public class Movement : MonoBehaviour
     float jumpVelocity; // Stores calculated jump velocity
     
     // Camera.
-    float cameraCap;                    // Stores Camera Angle. (How Far Up / Down)
-    bool isPlayerCamActive = true;      // Camera State Toggle.
-    Vector2 currentMouseDelta;          // Stores Smoothed Mouse Since Last Frame.
-    Vector2 currentMouseDeltaVelocity;  // Used For SmoothDamp.
+    // float cameraCap;                    // Stores Camera Angle. (How Far Up / Down) - DISABLED.
+    // bool isPlayerCamActive = false;     // Camera State Toggle - DISABLED (3D camera only).
+    // Vector2 currentMouseDelta;          // Stores Smoothed Mouse Since Last Frame - DISABLED.
+    // Vector2 currentMouseDeltaVelocity;  // Used For SmoothDamp - DISABLED.
 
     // Movement & Mouse.
     CharacterController controller; // "Capsule Mover"
@@ -93,17 +93,18 @@ public class Movement : MonoBehaviour
     // Continuous. Once Every Frame.
     private void Update()
     {
-        UpdateMouse();          // Updates Mouse Look.
+        // UpdateMouse();          // Updates Mouse Look - DISABLED (3D camera only).
         UpdateMove();           // Updates Movement.
-        CheckCameraSwitch();    // Checks If Camera Should Be Switched.
+        // CheckCameraSwitch();    // Checks If Camera Should Be Switched - DISABLED (3D camera only).
     }
 
-    // Updates Mouse Look.
+    // Updates Mouse Look - DISABLED (3D camera only).
+    /*
     void UpdateMouse()
     {
-        // Only allow mouse look if the player camera is ACTIVE (enabled)
-        if (playerCam == null || !playerCam.gameObject.activeInHierarchy) {
-            return; // Exit early if camera is not active
+        // Only allow mouse look if the player camera is ACTIVE (first person mode)
+        if (!isPlayerCamActive || playerCam == null || !playerCam.gameObject.activeInHierarchy) {
+            return; // Exit early if not in first person mode or camera is not active
         }
         
         // Debug camera state if there are issues
@@ -132,14 +133,12 @@ public class Movement : MonoBehaviour
         // Rotates Player Upon Horizontal Mouse Movement.
         transform.Rotate(Vector3.up * currentMouseDelta.x * mouseSensitivity);
     }
+    */
 
     // Updates Movement.
     void UpdateMove()
     {
-        // Only allow movement if the player camera is ACTIVE (enabled)
-        if (playerCam == null || !playerCam.gameObject.activeInHierarchy) {
-            return; // Exit early if camera is not active
-        }
+        // Movement works with 3D camera only (no first person mode)
         
         // Checks If GroundCheck Is Null.
         // (Casting A Small Invisible Sphere To Check If Touching Any Colliders On Ground)
@@ -268,7 +267,8 @@ public class Movement : MonoBehaviour
         }
     }
 
-    // Checks If Camera Should Be Switched.
+    // Checks If Camera Should Be Switched - DISABLED (3D camera only).
+    /*
     void CheckCameraSwitch()
     {
         // If C Is Pressed.
@@ -277,26 +277,36 @@ public class Movement : MonoBehaviour
             SwitchCamera();
         }
     }
+    */
 
-    // Initialize camera state at startup
+    // Initialize camera state at startup - 3D camera only
     void InitializeCameraState()
     {
-        // Set initial camera state based on isPlayerCamActive
-        if (isPlayerCamActive)
+        // Always use 3D camera (no first person mode)
+        if (threeDCam != null)
         {
-            // Start with PlayerCam (Inside Player)
-            playerCam.gameObject.SetActive(true);
-            threeDCam.gameObject.SetActive(false);
+            threeDCam.gameObject.SetActive(true);
         }
         else
         {
-            // Start with 3DCam (Outside Player)
-            playerCam.gameObject.SetActive(false);
-            threeDCam.gameObject.SetActive(true);
+            Debug.LogWarning("Movement: threeDCam is not assigned! Please assign it in the inspector.");
         }
     }
+    
+    // Public method to reinitialize camera state (called by other scripts)
+    public void ReinitializeCameraState()
+    {
+        // Re-enable the Movement script
+        enabled = true;
+        
+        // Reinitialize camera state (3D camera only)
+        InitializeCameraState();
+        
+        Debug.Log("Movement: Camera state reinitialized. Using 3D camera only.");
+    }
 
-    // Switches Camera.
+    // Switches Camera - DISABLED (3D camera only).
+    /*
     void SwitchCamera()
     {
         // Checks If PlayerCam And ThreeDCam Are Assigned.
@@ -326,6 +336,7 @@ public class Movement : MonoBehaviour
             Debug.LogWarning("One or both cameras not assigned in Movement script!");
         }
     }
+    */
     
     // Simple Animation Methods
     void UpdateSimpleAnimation()

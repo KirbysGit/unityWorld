@@ -10,6 +10,7 @@ namespace Seagull.Interior_01 {
         
         [Header("Camera System")]
         [SerializeField] private Camera playerCamera;
+        [SerializeField] private Camera threeDCamera;  // Reference to 3D camera
         [SerializeField] private Camera monitorCamera;
         [SerializeField] private MonitorCamLook monitorCamLook; // Reference to the monitor camera look script
         
@@ -154,15 +155,26 @@ namespace Seagull.Interior_01 {
         System.Collections.IEnumerator TransitionToStanding() {
             isTransitioning = true;
         
-            monitorCamera.enabled = false;
+            // Disable monitor camera
+            if (monitorCamera != null) {
+                monitorCamera.enabled = false;
+            }
             
-            // Enable Player Camera
-            playerCamera.enabled = true;
-            playerCamera.gameObject.SetActive(true);
+            // Re-enable movement script and let it handle camera state
+            if (movementScript != null) {
+                movementScript.enabled = true;
+                movementScript.ReinitializeCameraState(); // Let Movement script control cameras
+            }
             
-            movementScript.enabled = true;
-            playerModel.SetActive(true);
-            monitorCamLook.SetAllowLook(false);
+            // Re-enable player model
+            if (playerModel != null) {
+                playerModel.SetActive(true);
+            }
+            
+            // Disable monitor camera look
+            if (monitorCamLook != null) {
+                monitorCamLook.SetAllowLook(false);
+            }
 
             isSitting = false;
             isTransitioning = false;
