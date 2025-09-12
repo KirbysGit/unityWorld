@@ -1,3 +1,4 @@
+// Imports.
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
@@ -5,137 +6,108 @@ using Seagull.Interior_01;
 
 public class MonitorFocus : MonoBehaviour
 {
-    [Header("Camera Focus Settings")]
-    [SerializeField] Camera monitorCamera;          // The Monitor Cam.
-    [SerializeField] Transform focusTarget;         // Where To Look Based On Mouse.
-    [SerializeField] float focusSpeed = 2f;         // How Fast To Focus.
-    [SerializeField] float focusDistance = 2f;      // How Far Back To Move Camera.
-    [SerializeField] float focusFOV = 30f;          // FOV During Focus.
-    
-    [Header("Focus Behavior")]
-    [SerializeField] public bool startInFocusMode = false; // If You Want To Start In Focus Mode.
-    
-    [Header("UI Elements")]
-    [SerializeField] GameObject focusPrompt;        // UI Prompt To Show On Hover On Monitor, In MonitorView.
-    [SerializeField] Canvas monitorCanvas;          // Canvas That Renders To Monitor Cam.
-    [SerializeField] Canvas turnOnPromptCanvas;     // Canvas with "Press P to turn on monitor" message
-    
-    [Header("Custom Cursor")]
-    [SerializeField] GameObject customCursor;       // Custom Cursor GameObject (2D Sprite)
-    [SerializeField] bool showCustomCursor = true;  // Enable/Disable Custom Cursor. ? 
-    [SerializeField] Canvas cursorCanvas;           // Canvas For Cursor Positioning.
-    
-    [Header("Camera Control")]
-    [SerializeField] MonitorCamLook monitorCamLook; // Reference To Monitor Camera Look Script.
-    [SerializeField] Camera playerCamera;           // Reference To Player Camera.
-    [SerializeField] Camera threeDCamera;           // Reference To 3D Camera.
-    [SerializeField] GameObject playerObject;       // Reference To Player GameObject (Has Movement Script).
-    [SerializeField] ComputerInteraction computerInteraction; // Reference To Computer Interaction Script.
-    
-    [Header("Monitor State")]
-    [SerializeField] MonitorButton monitorButton;   // Reference to monitor button
-    
-    [Header("Canvas Background")]
-    [SerializeField] Sprite monitorOffSprite;       // Black/dark sprite for monitor off
-    [SerializeField] Sprite monitorOnSprite;        // Background sprite for monitor on
-    [SerializeField] Image canvasBackground;        // Reference to the Image component on canvas
-    
-    [Header("Game Integration")]
-    [SerializeField] SkateGame skateGame;           // Reference to the skate game script
+    // cameras.
+    [Header("cameras ----------------------------------------------")]
+    [SerializeField] Camera monitorCamera; 
+    [SerializeField] Camera playerCamera;          
+    [SerializeField] Camera threeDCamera;
+    [SerializeField] Camera houseCamera;
+
+    // focus target.  
+    [Header("focus -----------------------------------------------")]           
+    [SerializeField] Transform focusTarget;  
+    [SerializeField] GameObject focusPrompt;  
     
 
-    private bool isFocused = false; // If You Are Focused On The Monitor.
-    private bool isTransitioning = false; // If You Are Transitioning Between Focus And Not Focus.
-    private bool isMonitorOn = false; // If The Monitor Is Turned On.
+    // canvases.
+    [SerializeField] Canvas monitorCanvas;         
+    [SerializeField] Canvas turnOnPromptCanvas;    
+    [SerializeField] Canvas cursorCanvas;     
+    // custom cursor.
+    [SerializeField] GameObject customCursor;          
+    
+    [SerializeField] MonitorCamLook monitorCamLook;      
+    [SerializeField] GameObject playerObject;      
+    [SerializeField] ComputerInteraction computerInteraction; 
+    
+    [SerializeField] MonitorButton monitorButton;  
+    
+    // canvas background.
+    [SerializeField] Sprite monitorOffSprite;      
+    [SerializeField] Sprite monitorOnSprite;     
+    [SerializeField] Image canvasBackground;       
+    
+    // game integration.
+    [SerializeField] SkateGame skateGame;    
 
-    private Vector3 originalCameraPosition; // Original Camera Position.
-    private Quaternion originalCameraRotation; // Original Camera Rotation.
-    private float originalFOV; // Original FOV.
+    // focus settings.
+    private bool isFocused = false; 
+    private bool isTransitioning = false; 
+    private bool isMonitorOn = false; 
+    float focusSpeed = 2f;         
+    float focusDistance = 2f;     
+    float focusFOV = 30f;         
 
+    private Vector3 originalCameraPosition; 
+    private Quaternion originalCameraRotation; 
+    private float originalFOV; 
 
-    private bool isHoveringLastFrame = false; // If You Are Hovering On The Monitor Last Frame.
-    private RectTransform cursorRectTransform; // Rect Transform For Cursor.
-    private Vector2 cursorPosition = new Vector2(0.5f, 0.5f); // Start At Center.
-    private Movement movementScript; // Cached Reference To Movement Component.
+    private bool isHoveringLastFrame = false; 
+    private RectTransform cursorRectTransform; 
+    private Vector2 cursorPosition = new Vector2(0.5f, 0.5f); 
+    private Movement movementScript; 
+    
+
+    // -------------------------------------------------------- Before First Frame.
     
     void Start()
     {
-        // Ensure Monitor Cam is assigned - don't default to Camera.main
-        if (monitorCamera == null)
-        {
-            Debug.LogError("MonitorFocus: monitorCamera is not assigned! Please assign it in the inspector.");
-            return;
-        }
+        // store original camera state.
+        originalCameraPosition = monitorCamera.transform.position;
+        originalCameraRotation = monitorCamera.transform.rotation;
+        originalFOV = monitorCamera.fieldOfView;
         
-        // Store Original Camera State. (Like the Center Position, Rotation, And FOV.)
-        if (monitorCamera != null)
-        {
-            originalCameraPosition = monitorCamera.transform.position;
-            originalCameraRotation = monitorCamera.transform.rotation;
-            originalFOV = monitorCamera.fieldOfView;
-        }
+        // get movement script.
+        movementScript = playerObject.GetComponent<Movement>();
         
-        // Get Movement Component From Player GameObject. (So You Can Disable It When Focused.)
-        if (playerObject != null)
-        {
-            movementScript = playerObject.GetComponent<Movement>();
-        }
-        
-        // Initialize UI. (For Focus Prompt.)
+        // set up UI for prompts.
         InitializeUI();
         
-        // Check If Collider Exists. (So You Can Hover On The Monitor.)
-        Collider col = GetComponent<Collider>();
-        if (col == null)
-        {
-            // No Collider Found - Mouse Hover Won't Work Without A Collider.
-        }
-        
-        // Ensure 3D camera is active by default (don't interfere with it)
-        if (threeDCamera != null && !startInFocusMode)
-        {
-            threeDCamera.enabled = true;
-            threeDCamera.gameObject.SetActive(true);
-        }
-        
-        // Start In Focus Mode If Enabled.
-        if (startInFocusMode)
-        {
-            StartFocusModeImmediately();
-        }
+        // check if collider exists.
+        Collider col = GetComponent<Collider>();        
     }
     
     void InitializeUI()
     {
-        // Hide Focus Prompt At Start.
+        // hide focus prompt at start.
         focusPrompt.SetActive(false);
         
-        // Set Up Canvas To Render To Monitor Cam.
+        // set up canvas to render to monitor cam.
         monitorCanvas.worldCamera = monitorCamera;
         monitorCanvas.renderMode = RenderMode.ScreenSpaceCamera;
 
-        // Get Rect Transform For Custom Cursor.
+        // get rect transform for custom cursor.
         cursorRectTransform = customCursor.GetComponent<RectTransform>();
 
-        // Start Cursor Hidden.
+        // start cursor hidden.
         customCursor.SetActive(false);
         
-        // Set monitor to off state
+        // set monitor to off state.
         SetMonitorState(false);
     }
     
     void Update()
     {
-        // Check For Mouse Hover Using Raycasting (More Reliable With Locked Cursor).
+        // check for mouse hover.
         CheckMouseHover();
         
-        // Handle P key input when focused
+        // if focused & p key pressed, toggle monitor.
         if (isFocused && Keyboard.current != null && Keyboard.current.pKey.wasPressedThisFrame)
         {
             ToggleMonitor();
         }
         
-        // Update Custom Cursor When Focused And Monitor Is On.
+        // update custom cursor when focused & monitor is on.
         if (isFocused && isMonitorOn)
         {
             UpdateCustomCursor();
@@ -144,68 +116,57 @@ public class MonitorFocus : MonoBehaviour
     
     void CheckMouseHover()
     {   
-        // If We're Focused, Don't Check For Hover - Cursor Can Move Freely.
+        // if focused, check for escape key press.
         if (isFocused)
         {
-                    // Check For Click To Unfocus (only if not clicking on app icon)
-        if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
-        {
-            // Check if clicking on app icon first
-            if (CheckAppIconClick())
+            if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
             {
-                // App icon was clicked, don't unfocus
-                return;
+                if (isFocused)
+                {
+                    StopFocus();
+                } else {
+                    StartFocus();
+                }
             }
             
-            if (isFocused)
-            {
-                StopFocus();
-            } else {
-                StartFocus();
-            }
-        }
             return;
         }
         
-        // Create A Ray From The Center Of The Monitor Camera (Since Cursor Is Locked To Center).
+        // create a ray from the center of the monitor camera.
         Ray ray = monitorCamera.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
         RaycastHit hit;
         
-        // Check If Raycast Hits Collider.
+        // check if raycast hits collider.
         bool isHovering = Physics.Raycast(ray, out hit) && hit.collider == GetComponent<Collider>();
         
-        // If We're Hovering And Not Focused And Not Transitioning, Do Stuff.
+        // if hovering & not focused & not transitioning, 
         if (isHovering && !isFocused && !isTransitioning)
         {
-            // If We're Not Hovering Last Frame, Show The Focus Prompt. "Click To Focus Monitor."
-            if (!isHoveringLastFrame)
-            {
-                focusPrompt.SetActive(true);
-            }
+            // if we weren't hovering, show focus prompt.
+            if (!isHoveringLastFrame) focusPrompt.SetActive(true);
             
-            // Check For Mouse Click While Hovering.
+            // check for mouse click while hovering.
             if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
             {
-                // If We're Not Focused And Not Transitioning, Start Focus.
+                // if we're not focused & not transitioning, start focus.
                 if (!isFocused && !isTransitioning)
                 {
-                    // Start Focus.
                     StartFocus();
                 }
-                // If We're Focused And Not Transitioning, Stop Focus.
+                // if we're focused & not transitioning, stop focus.
                 else if (isFocused && !isTransitioning)
                 {
-                    // Stop Focus.
                     StopFocus();
                 }
             }
         }
-        // If We're Not Hovering And We Were Hovering Last Frame, Hide The Focus Prompt. "Click To Unfocus Monitor."
+        // if we're not hovering & we were hovering last frame, hide focus prompt.
         else if (!isHovering && isHoveringLastFrame)
         {
             focusPrompt.SetActive(false);
         }
         
+        // update hovering last frame.
         isHoveringLastFrame = isHovering;
     }
     
@@ -238,46 +199,35 @@ public class MonitorFocus : MonoBehaviour
     
     void StartFocus()
     {  
-        // Hide The Focus Prompt On Focus.
+        // hide focus prompt.
         focusPrompt.SetActive(false);
         
-        // Show turn on prompt if monitor is off
+        // show turn on prompt if monitor is off.
         turnOnPromptCanvas.gameObject.SetActive(!isMonitorOn);
         
-        // Show Custom Cursor Only When Monitor Is On.
+        // show custom cursor only when monitor is on.
         customCursor.SetActive(isMonitorOn);
 
-        // Set Focus To True & Start Transition.
+        // set focus to true & start transition.
         isFocused = true;
         isTransitioning = true;
         
-        // Disable 3D Camera and enable monitor camera when focusing
-        if (threeDCamera != null) {
-            threeDCamera.enabled = false;
-            threeDCamera.gameObject.SetActive(false);
-        }
-        if (monitorCamera != null) {
-            monitorCamera.enabled = true;
-        }
+        threeDCamera.enabled = false;
+        threeDCamera.gameObject.SetActive(false);
+
+        monitorCamera.enabled = true;
+
+        movementScript.enabled = false;
         
-        // Disable Movement Script when focused
-        if (movementScript != null) {
-            movementScript.enabled = false;
-        }
+        // disable monitor camera movement when focused.
+        monitorCamLook.SetAllowLook(false);
         
-        // Disable Monitor Camera Movement When Focused. (Can't Look Around In Monitor View.)
-        if (monitorCamLook != null) {
-            monitorCamLook.SetFocused(true);
-        }
+        // store current camera state.
+        originalCameraPosition = monitorCamera.transform.position;
+        originalCameraRotation = monitorCamera.transform.rotation;
+        originalFOV = monitorCamera.fieldOfView;
         
-        // Store Current Camera State. (Like the Center Position, Rotation, And FOV.)
-        if (monitorCamera != null) {
-            originalCameraPosition = monitorCamera.transform.position;
-            originalCameraRotation = monitorCamera.transform.rotation;
-            originalFOV = monitorCamera.fieldOfView;
-        }
-        
-        // Smooth Focus To Target.
+        // smooth focus to target.
         StartCoroutine(SmoothFocusToTarget());
     }
     
@@ -294,24 +244,19 @@ public class MonitorFocus : MonoBehaviour
         isTransitioning = true;
         
         // Re-enable 3D Camera and disable monitor camera when stopping focus
-        if (threeDCamera != null) {
-            threeDCamera.enabled = true;
-            threeDCamera.gameObject.SetActive(true);
-        }
-        if (monitorCamera != null) {
-            monitorCamera.enabled = false;
-        }
+        threeDCamera.enabled = true;
+        threeDCamera.gameObject.SetActive(true);
+        
+        monitorCamera.enabled = false;
+        
         
         // Re-enable Movement Script when not focused
-        if (movementScript != null) {
-            movementScript.enabled = true;
-        }
+        movementScript.enabled = true;
+        
         
         // Re-enable monitor camera movement when not focused. (Can Look Around In Monitor View.)
-        if (monitorCamLook != null) {
-            monitorCamLook.SetFocused(false);
-            monitorCamLook.SetAllowLook(true);
-        }
+        monitorCamLook.SetAllowLook(true);
+        
         
         // Smooth Return To Original View.
         StartCoroutine(SmoothReturnToOriginal());
@@ -437,65 +382,14 @@ public class MonitorFocus : MonoBehaviour
     {
         isMonitorOn = on;
         
-        // Update canvas background image
+        // update canvas background image
         canvasBackground.sprite = on ? monitorOnSprite : monitorOffSprite;
         
-        // Update monitor button state
+        // update monitor button state
         monitorButton.SetMonitorState(on);
         
-        // Update UI elements
+        // update UI elements
         turnOnPromptCanvas.gameObject.SetActive(isFocused && !on);
         customCursor.SetActive(isFocused && on);
     }
-    
-    public void OnGameBack()
-    {
-        // Called when returning from the game
-        Debug.Log("Returned from game to monitor");
-        // The game canvas will be hidden by SkateGame script
-        // Monitor canvas will be shown by SkateGame script
-    }
-    
-    void StartFocusModeImmediately()
-    {
-        // Disable 3D Camera and enable monitor camera
-        if (threeDCamera != null) {
-            threeDCamera.enabled = false;
-            threeDCamera.gameObject.SetActive(false);
-        }
-        if (monitorCamera != null) {
-            monitorCamera.enabled = true;
-        }
-        
-        // Disable Movement Script
-        if (movementScript != null) {
-            movementScript.enabled = false;
-        }
-        
-        // Set Up ComputerInteraction
-        if (computerInteraction != null) {
-            computerInteraction.SetSittingState(true);
-        }
-        
-        // Enable Monitor Camera Look Controls
-        if (monitorCamLook != null) {
-            monitorCamLook.SetAllowLook(true);
-        }
-        
-        // Start focus mode automatically
-        StartFocus();
-    }
-    
-    System.Collections.IEnumerator StartInFocusMode()
-    {
-        yield return null;
-        
-        playerCamera.enabled = false;
-        threeDCamera.enabled = false;
-        monitorCamera.enabled = true;
-        movementScript.enabled = false;
-        
-        StartFocus();
-    }
-
 }

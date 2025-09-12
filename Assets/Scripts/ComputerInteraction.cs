@@ -1,199 +1,152 @@
+
+// handling interaction with computer between walking around like normal, and entering the monitor view.
+
+// Imports.
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
 
 namespace Seagull.Interior_01 {
     public class ComputerInteraction : MonoBehaviour {
-        [Header("Interaction Settings")]
-        [SerializeField] private float interactionRange = 3f;
-        [SerializeField] private Key interactKey = Key.E;
-        
-        [Header("Camera System")]
+
+        [Header("the cams ---------------------------------------------")]
         [SerializeField] private Camera playerCamera;
-        [SerializeField] private Camera threeDCamera;  // Reference to 3D camera
+        [SerializeField] private Camera threeDCamera;
         [SerializeField] private Camera monitorCamera;
-        [SerializeField] private MonitorCamLook monitorCamLook; // Reference to the monitor camera look script
+        [SerializeField] private MonitorCamLook monitorCamLook;
         
-        [Header("UI Elements")]
+        [Header("ui prompt --------------------------------------------")]
         [SerializeField] private GameObject interactionPrompt;
         
-        [Header("Player Control")]
-        [SerializeField] private GameObject playerObject;
+        [Header("the player -------------------------------------------")]
+        [SerializeField] private GameObject playerModel;
         [SerializeField] private Movement movementScript;
-        [SerializeField] private GameObject playerModel;  // The visual model/body of the player
 
-        
-        private bool playerInRange = false;
+        // State Variables.
         private bool isSitting = false;
+        private Key interactKey = Key.E;
+        private bool playerInRange = false;
+        private float interactionRange = 3f;
         private bool isTransitioning = false;
         
 
         // -------------------------------------------------------- Before First Frame.
         void Start() {
-            // Check If Prompt Is Assigned.
+            // ensure 3D camera is active at start
+            threeDCamera.enabled = true;
+
+            // standing at start.
+            isSitting = false;
+            
+            // disable monitorCam.
             monitorCamera.enabled = false;
-            InitializeUI();
 
-            if (playerObject != null) {
-                movementScript = playerObject.GetComponent<Movement>();
-            }
-            Debug.Log("ComputerInteraction: Movement Script: " + movementScript);
-        }
-
-        void InitializeUI() {
-            if (interactionPrompt != null) {
-                interactionPrompt.SetActive(false);
-            }
+            // disable interactionPrompt.
+            interactionPrompt.SetActive(false);
         }
         
         // -------------------------------------------------------- Every Frame.
         void Update() {
-            // Check If Player Is In Range.
+            // check if player close enough to computer.
             CheckPlayerProximity();
 
-            // Handle Input.
+            // handle input.
             HandleInput();
         }
+
+        // -------------------------------------------------------- check players range & show/hide prompt.
         
         void CheckPlayerProximity() {
-            // Check if playerObject is assigned
-            if (playerObject == null) {
-                Debug.LogWarning("ComputerInteraction: playerObject is null!");
-                return;
-            }
+            // get distance between player & computr, then set if in range.
+            float distance = Vector3.Distance(transform.position, movementScript.transform.position); 
+            bool wasInRange = playerInRange;                                                        
+            playerInRange = distance <= interactionRange;                                           
 
-            // Set Distance Between Player And Computer.
-            float distance = Vector3.Distance(transform.position, playerObject.transform.position);
-            
-            // Debug the distance
-            Debug.Log($"Distance to player: {distance}, Interaction range: {interactionRange}");
-
-            // Bool For If Player Was In Range.
-            bool wasInRange = playerInRange;
-
-            // Set If Player Is In Range.
-            playerInRange = distance <= interactionRange;
-
-            // If Player Entered Range.
+            // if player in range & was not before, show the prompt.
+            // else if, player not in range and was before, hide prompt.
             if (playerInRange && !wasInRange) {
-                Debug.Log("Player entered range - showing prompt");
-                // If Player Is Not Sitting.
                 if (!isSitting) {
-                    // Show Prompt.
-                    ShowInteractionPrompt();
+                    interactionPrompt.SetActive(true);
                 }
             } else if (!playerInRange && wasInRange) {
-                Debug.Log("Player left range - hiding prompt");
-                // Hide Prompt.
                 if (!isSitting) {
-                    HideInteractionPrompt();
+                    interactionPrompt.SetActive(false);
                 }
             }
         }
         
-        // Handle Input.
         void HandleInput() {
-            // If Keyboard Is Assigned.
-            if (Keyboard.current != null) {
-                // If Interact Key Was Pressed.
-                if (Keyboard.current[interactKey].wasPressedThisFrame) {
-                    
-                    // If Player Is In Range And Not Sitting.
-                    if (playerInRange && !isSitting) {
-                        // Sit Down.
-                        SitDown();
-                    } else if (isSitting) {
-                        // Stand Up.
-                        StandUp();
-                    }
+            // if interact key pressed.
+            if (Keyboard.current[interactKey].wasPressedThisFrame) {
+                // if player in range and not sitting, sit down.
+                // else if player is sitting, stand up.
+                if (playerInRange && !isSitting) {
+                    SitDown();
+                } else if (isSitting) {
+                    StandUp();
                 }
             }
         }
         
-        
-        void ShowInteractionPrompt() {
-            if (interactionPrompt != null) {
-                interactionPrompt.SetActive(true);
-            }
-        }
-        
-        void HideInteractionPrompt() {
-            if (interactionPrompt != null) {
-                interactionPrompt.SetActive(false);
-            }
-        }
-        
+        // -------------------------------------------------------- sit down & stand up funcs.
         public void SitDown() {
             if (isTransitioning) return;
-
-            
-            HideInteractionPrompt();
+            interactionPrompt.SetActive(false);
             StartCoroutine(TransitionToSitting());
         }
         
         public void StandUp() {
             if (isTransitioning) return;
-            
             StartCoroutine(TransitionToStanding());
         }
         
+        // -------------------------------------------------------- sit down coroutine.
         System.Collections.IEnumerator TransitionToSitting() {
+            // update transitioning to true.
             isTransitioning = true;
             
+            // disable playerCam & enable monitorCam.
+            threeDCamera.enabled = false;
             playerCamera.enabled = false;
             monitorCamera.enabled = true;
+
+            // disable movementScript & playerModel.
             movementScript.enabled = false;
             playerModel.SetActive(false);
+
+            // allow user to look around.
             monitorCamLook.SetAllowLook(true);
-            
+
+            // update sitting state to true & transitioning to false.
             isSitting = true;
             isTransitioning = false;
             
             yield return null;
         }
         
+        // -------------------------------------------------------- stand up coroutine.
         System.Collections.IEnumerator TransitionToStanding() {
+            // update transitioning to true.
             isTransitioning = true;
         
-            // Disable monitor camera
-            if (monitorCamera != null) {
-                monitorCamera.enabled = false;
-            }
-            
-            // Re-enable movement script and let it handle camera state
-            if (movementScript != null) {
-                movementScript.enabled = true;
-                movementScript.ReinitializeCameraState(); // Let Movement script control cameras
-            }
-            
-            // Re-enable player model
-            if (playerModel != null) {
-                playerModel.SetActive(true);
-            }
-            
-            // Disable monitor camera look
-            if (monitorCamLook != null) {
-                monitorCamLook.SetAllowLook(false);
-            }
+            // disable monitorCam.
+            threeDCamera.enabled = true;    
+            monitorCamera.enabled = false;
 
+            // enable movementScript.
+            movementScript.enabled = true;
+            
+            // enable playerModel.
+            playerModel.SetActive(true);
+            
+            // disable monitor camera look.
+            monitorCamLook.SetAllowLook(false);
+
+            // update sitting state to false & transitioning to false.
             isSitting = false;
             isTransitioning = false;
             
-            // Wait A Frame And Check Camera States Again
             yield return null;
-        }
-        
-        public bool IsPlayerSitting() {
-            return isSitting;
-        }
-        
-        public bool IsPlayerInRange() {
-            return playerInRange;
-        }
-        
-        // Method to set sitting state (for MonitorFocus coordination)
-        public void SetSittingState(bool sitting) {
-            isSitting = sitting;
         }
     }
 }

@@ -1,23 +1,23 @@
+// Imports.
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class MonitorCamLook : MonoBehaviour
 {
-    [Header("Simple Settings")]
-    [SerializeField] float sensitivity = 0.5f;  // much lower sensitivity
-    [SerializeField] float leftLimit = -60f;   // look left limit
-    [SerializeField] float rightLimit = 60f;   // look right limit
-    [SerializeField] float bottomLimit = -60f;   // look down limit
-    [SerializeField] float topLimit = 60f;   // look up limit
-    [SerializeField] bool allowLook = false;   // enable/disable looking
-    
-    [Header("Smoothing")]
-    [SerializeField] float smoothTime = 0.1f;  // much faster response
-    
-    [Header("Cursor Control")]
-    [SerializeField] bool showCursorWhenActive = true;  // Show cursor when monitor is active
-    [SerializeField] bool keepCursorCentered = true;    // Keep cursor centered when monitor is active
+    // camera look.
+    float sensitivity = 0.5f; 
+    float leftLimit = -60f;   
+    float rightLimit = 60f;   
+    float bottomLimit = -60f;   
+    float topLimit = 60f;   
+    bool allowLook = false;   
+    float smoothTime = 0.1f;
 
+    // cursor control.
+    bool showCursorWhenActive = true; 
+    bool keepCursorCentered = true;   
+
+    // camera rotation.
     float currentYaw = 0f;
     float targetYaw = 0f;
     float yawVelocity = 0f;
@@ -25,78 +25,72 @@ public class MonitorCamLook : MonoBehaviour
     float targetPitch = 0f;
     float pitchVelocity = 0f;
     
+    // focused state.
     private bool isFocused = false;
 
+    // -------------------------------------------------------- Every Frame.
     void Update()
     {
-        // Return If Not Allowing Look Or Mouse Is Not Active.
+        // return if not allowing look or mouse is not active.
         if (!allowLook || Mouse.current == null) return;
         
-        // Check if the camera is enabled - don't accept input if camera is disabled
+        // check if camera is enabled
         Camera cam = GetComponent<Camera>();
         if (cam != null && !cam.enabled) return;
 
-        // Check if we're in focused mode (camera movement disabled)
-        if (isFocused)
-        {
-            // In focused mode, don't move the camera - cursor can move freely
-            return;
-        }
+        // check if we're in focused mode (looking only at monitor)
+        if (isFocused) return;
 
-        // Get Mouse Input.
+        // get mouse input.
         float mouseX = Mouse.current.delta.ReadValue().x;
         float mouseY = Mouse.current.delta.ReadValue().y;
         
-        // Apply Sensitivity & Update Target.
+        // apply sensitivity & update target.
         targetYaw += mouseX * sensitivity;
-        targetPitch -= mouseY * sensitivity;  // Inverted vertical movement
+        targetPitch -= mouseY * sensitivity;
         
-        // Clamp Target To Left/Right Limits.
+        // clamp target to left/right limits.
         targetYaw = Mathf.Clamp(targetYaw, leftLimit, rightLimit);
         targetPitch = Mathf.Clamp(targetPitch, bottomLimit, topLimit);
 
-        // Smoothly Move Current Yaw Towards Target.
+        // smoothly move current yaw towards target.
         currentYaw = Mathf.SmoothDamp(currentYaw, targetYaw, ref yawVelocity, smoothTime);
         currentPitch = Mathf.SmoothDamp(currentPitch, targetPitch, ref pitchVelocity, smoothTime);
         
-        // Apply Rotation.
+        // apply rotation.
         transform.localRotation = Quaternion.Euler(currentPitch, currentYaw, 0f);
     }
 
-    // Sets Allow Look.
+    // sets allow look.
     public void SetAllowLook(bool on) 
     {
         allowLook = on;
         
-        // Handle cursor visibility
+        // handle cursor visibility
         if (showCursorWhenActive)
         {
             if (on)
             {
-                // Show cursor when monitor is active
+                // show cursor when monitor is active
                 if (keepCursorCentered)
                 {
+                    // lock cursor when the monitor is active.
                     Cursor.lockState = CursorLockMode.Locked;
                     Cursor.visible = true;
                 }
                 else
                 {
+                    // unlock cursor when not focused.
                     Cursor.lockState = CursorLockMode.None;
                     Cursor.visible = true;
                 }
             }
             else
             {
-                // Hide cursor when monitor is inactive
+                // hide cursor when not focused.
                 Cursor.lockState = CursorLockMode.Locked;
                 Cursor.visible = false;
             }
         }
-    }
-    
-    // Sets focused state (called by MonitorFocus script)
-    public void SetFocused(bool focused)
-    {
-        isFocused = focused;
     }
 }

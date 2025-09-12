@@ -1,0 +1,32 @@
+{
+    "files.exclude": {
+        "**/*.meta": true,
+        "**/Library": true,
+        "**/Temp": true,
+        "**/Logs": true,
+        "**/UserSettings": true,
+        "**/obj": true,
+        "**/Build": true,
+        "**/Builds": true
+    },
+    "search.exclude": {
+        "**/*.meta": true,
+        "**/Library": true,
+        "**/Temp": true,
+        "**/Logs": true,
+        "**/UserSettings": true,
+        "**/obj": true,
+        "**/Build": true,
+        "**/Builds": true
+    },
+    "files.watcherExclude": {
+        "**/*.meta": true,
+        "**/Library/**": true,
+        "**/Temp/**": true,
+        "**/Logs/**": true,
+        "**/UserSettings/**": true,
+        "**/obj/**": true,
+        "**/Build/**": true,
+        "**/Builds/**": true
+    }
+}

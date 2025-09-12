@@ -1,0 +1,16 @@
+# Removing All Meta Files.
+
+cd "Assets\Scripts"; Remove-Item *.meta
+
+Where scripts are attached : 
+
+    -   BetterModel -> Movement & Player Actions
+    -   LOD0 of Door -> Door
+    -   monitorCam -> Monitor View
+    -   Monitor -> Monitor Controller & Monitor Focus
+    -   Computer -> Computer Interaction
+    -   OnButton -> Monitor Button
+
+
+
+.SetActive -> Boolean for GameObjs.

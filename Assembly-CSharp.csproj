@@ -68,7 +68,6 @@
     <Compile Include="Assets\BOKI\LowPolyNature\Scripts\SimpleCameraController.cs" />
     <Compile Include="Assets\Fries and Seagull\Interior 01\Scripts\DeskLamp.cs" />
     <Compile Include="Assets\Fries and Seagull\Interior 01\Scripts\Utility\YureiButtonAttribute.cs" />
-    <Compile Include="Assets\Scripts\MoveCamera.cs" />
     <Compile Include="Assets\Scripts\MonitorFocus.cs" />
     <Compile Include="Assets\Fries and Seagull\Interior 01\Scripts\OfficeChair.cs" />
     <Compile Include="Assets\Scripts\ComputerInteraction.cs" />
@@ -83,14 +82,13 @@
     <Compile Include="Assets\Fries and Seagull\Interior 01\Scripts\Kettle.cs" />
     <Compile Include="Assets\Fries and Seagull\Interior 01\Scripts\AirConditioner.cs" />
     <Compile Include="Assets\Fries and Seagull\Interior 01\Scripts\Utility\TimeZoneEnum.cs" />
-    <Compile Include="Assets\Scripts\MonitorUI.cs" />
     <Compile Include="Assets\Scripts\MonitorButton.cs" />
     <Compile Include="Assets\Fences\LowPolyFencePack\Scripts\DoorToggle.cs" />
+    <Compile Include="Assets\Scripts\StartUp.cs" />
     <Compile Include="Assets\Fries and Seagull\Interior 01\Scripts\SampleScene.cs" />
     <Compile Include="Assets\BOKI\LowPolyNature\Scripts\WaterfallAudio.cs" />
     <Compile Include="Assets\Fences\LowPolyFencePack\Scripts\DoorController.cs" />
     <Compile Include="Assets\Fries and Seagull\Interior 01\Scripts\ExtAirConditioner.cs" />
-    <Compile Include="Assets\Scripts\PlayerCam.cs" />
     <Compile Include="Assets\Drones\Characters\Drone Companions Starter Pack\Scripts\DynamoBone\DynamoBone.cs" />
     <Compile Include="Assets\Fries and Seagull\Interior 01\Scripts\Clock.cs" />
     <Compile Include="Assets\Fries and Seagull\Interior 01\Scripts\Computer.cs" />
