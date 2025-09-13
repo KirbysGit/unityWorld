@@ -1,9 +1,11 @@
+// Imports.
 using System.Collections;
 using UnityEngine;
 
 public class Door : MonoBehaviour
 {
     [SerializeField] private bool _isOpen = false;
+    
     public bool isOpen 
     { 
         get { return _isOpen; }

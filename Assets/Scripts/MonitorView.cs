@@ -1,3 +1,6 @@
+// this just handles the middle behavior of once the character is seated, they can look around their desk
+// and they can look at the monitor, this handles if the character is focused to the monitor or not.
+
 // Imports.
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -28,7 +31,7 @@ public class MonitorCamLook : MonoBehaviour
     // focused state.
     private bool isFocused = false;
 
-    // -------------------------------------------------------- Every Frame.
+    // -------------------------------------------------------- every frame.
     void Update()
     {
         // return if not allowing look or mouse is not active.
@@ -61,7 +64,7 @@ public class MonitorCamLook : MonoBehaviour
         transform.localRotation = Quaternion.Euler(currentPitch, currentYaw, 0f);
     }
 
-    // sets allow look.
+    // -------------------------------------------------------- sets allow look.
     public void SetAllowLook(bool on) 
     {
         allowLook = on;

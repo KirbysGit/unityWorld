@@ -79,6 +79,7 @@
     <Compile Include="Assets\Scripts\SkateGame.cs" />
     <Compile Include="Assets\Fries and Seagull\Interior 01\Scripts\Utility\YureiPostProcessorIdentifier.cs" />
     <Compile Include="Assets\Scripts\PlayerActions.cs" />
+    <Compile Include="Assets\Scripts\ComputerScreen.cs" />
     <Compile Include="Assets\Fries and Seagull\Interior 01\Scripts\Kettle.cs" />
     <Compile Include="Assets\Fries and Seagull\Interior 01\Scripts\AirConditioner.cs" />
     <Compile Include="Assets\Fries and Seagull\Interior 01\Scripts\Utility\TimeZoneEnum.cs" />
