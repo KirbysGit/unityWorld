@@ -19,6 +19,7 @@ public class Movement : MonoBehaviour
     [SerializeField] Transform rightArm;
     [SerializeField] Transform leftLeg;
     [SerializeField] Transform rightLeg;
+    [SerializeField] Transform characterModel;    // the visual character model to rotate.
 
     // ground detection.
     float groundCheckRadius = 0.2f; 
@@ -48,6 +49,10 @@ public class Movement : MonoBehaviour
     Vector2 currentDir;
     Vector2 currentDirVelocity;
     float currentSpeed;
+    
+    // mouse look.
+    float mouseSensitivity = 4f;     // how fast the character turns.
+    float mouseX;                    // horizontal mouse input.
 
     // -------------------------------------------------------- Before First Frame.
     private void Start()
@@ -72,7 +77,24 @@ public class Movement : MonoBehaviour
     // -------------------------------------------------------- Every Frame.
     private void Update()
     {
-        UpdateMove();
+        UpdateMouseLook();    // handle mouse look first.
+        UpdateMove();         // then handle movement.
+    }
+
+    // -------------------------------------------------------- update mouse look.
+    void UpdateMouseLook()
+    {
+        // get mouse input.
+        if (Mouse.current != null)
+        {
+            mouseX = Mouse.current.delta.x.ReadValue();    // horizontal mouse movement.
+        }
+        
+        // rotate only the character model based on mouse movement.
+        if (characterModel != null)
+        {
+            characterModel.Rotate(Vector3.up * mouseX * mouseSensitivity * Time.deltaTime);
+        }
     }
 
     // -------------------------------------------------------- update movement.
@@ -117,7 +139,10 @@ public class Movement : MonoBehaviour
 
         // gravity. & velocity.
         velocityY += gravity * Time.deltaTime;
-        Vector3 velocity = (transform.forward * currentDir.y + transform.right * currentDir.x) * currentSpeed;
+        
+        // use character model rotation for movement direction if available, otherwise use transform.
+        Transform movementTransform = characterModel != null ? characterModel : transform;
+        Vector3 velocity = (movementTransform.forward * currentDir.y + movementTransform.right * currentDir.x) * currentSpeed;
         velocity.y = velocityY;
         
         // move player.

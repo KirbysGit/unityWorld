@@ -2,9 +2,9 @@
 using System.Collections;
 using UnityEngine;
 
-public class Door : MonoBehaviour
+public class Door : MonoBehaviour, IInteractable
 {
-    [SerializeField] private bool _isOpen = false;
+    private bool _isOpen = false;
     
     public bool isOpen 
     { 
@@ -12,43 +12,48 @@ public class Door : MonoBehaviour
         private set { _isOpen = value; }
     }
     
-    [SerializeField] private bool isRotatingDoor = true;
-    [SerializeField] private float speed = 1f;
-    [Header("Rotation Configs")] 
-    [SerializeField] private float rotationAmount = 90f;
-    [SerializeField] private float ForwardDirection = 0;
+    private bool isRotatingDoor = true;
+    private float speed = 1f;
+    private float rotationAmount = 90f;
+    private float ForwardDirection = 0;
 
     private Vector3 StartRotation;
     private Vector3 Forward;
 
     private Coroutine AnimationCoroutine;
 
+    // -------------------------------------------------------- before first frame.
     private void Awake(){
+        // gets initial rotation & forward direction.
         StartRotation = transform.rotation.eulerAngles;
         Forward = transform.right;
-        //Debug.Log($"Door {gameObject.name} initialized. Start rotation: {StartRotation}, Forward: {Forward}");
     }
 
+    // -------------------------------------------------------- IInteractable implementation.
+    public void Interact(Vector3 playerPosition)
+    {
+        if (isOpen)
+        {
+            Close();
+        }
+        else
+        {
+            Open(playerPosition);
+        }
+    }
+
+    // -------------------------------------------------------- open the door.
     public void Open(Vector3 UserPosition){
-        //Debug.Log($"Door.Open() called from position {UserPosition}");
         if (!isOpen){
-            if (AnimationCoroutine != null){
-                StopCoroutine(AnimationCoroutine);
-            }
-            if (isRotatingDoor){
-                float dot = Vector3.Dot(Forward, (UserPosition - transform.position).normalized);
-                //Debug.Log($"Dot Product: {dot.ToString("N3")}");
-                AnimationCoroutine = StartCoroutine(DoRotationOpen(dot));
-            }
-        }
-        else {
-            Debug.Log("Door is already open!");
+            StopCoroutine(AnimationCoroutine);
+            float dot = Vector3.Dot(Forward, (UserPosition - transform.position).normalized);
+            AnimationCoroutine = StartCoroutine(DoRotationOpen(dot));
         }
     }
 
+    // -------------------------------------------------------- open the door.
     private IEnumerator DoRotationOpen(float ForwardAmount)
     {
-        Debug.Log("Starting door open animation");
         Quaternion startRotation = transform.rotation;
         Quaternion endRotation;
 
@@ -67,26 +72,17 @@ public class Door : MonoBehaviour
             yield return null;
             time += Time.deltaTime * speed;
         }
-        //Debug.Log("Door open animation complete");
     }
 
     public void Close(){
-        //Debug.Log("Door.Close() called");
         if(isOpen){
-            if(AnimationCoroutine != null){
-                StopCoroutine(AnimationCoroutine);
-            }
-            if(isRotatingDoor){
-                AnimationCoroutine = StartCoroutine(DoRotationClose());
-            }
-        }
-        else {
-            //Debug.Log("Door is already closed!");
+            StopCoroutine(AnimationCoroutine);
+
+            AnimationCoroutine = StartCoroutine(DoRotationClose());
         }
     }
 
     private IEnumerator DoRotationClose(){
-        //Debug.Log("Starting door close animation");
         Quaternion startRotation = transform.rotation;
         Quaternion endRotation = Quaternion.Euler(StartRotation);
 
@@ -97,8 +93,11 @@ public class Door : MonoBehaviour
             transform.rotation = Quaternion.Slerp(startRotation, endRotation, time);
             yield return null;
             time += Time.deltaTime * speed;
-            
         }
-        //Debug.Log("Door close animation complete");
+    }
+
+    public string GetPromptText()
+    {
+        return isOpen ? "Close \"E\"" : "Open \"E\"";
     }
 }

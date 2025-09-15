@@ -36,7 +36,10 @@ public class MonitorFocus : MonoBehaviour
     private bool isFocused = false; 
     float focusSpeed = 2f;         
     float focusDistance = 2f;     
-    float focusFOV = 30f;         
+    float focusFOV = 30f;
+    
+    // sitting state check.
+    private bool isSitting = false;         
 
     // original camera state.
     private Vector3 originalCameraPosition; 
@@ -56,7 +59,7 @@ public class MonitorFocus : MonoBehaviour
         movementScript = movementScript.GetComponent<Movement>();
         
         // hide focus prompt at start.
-        focusPrompt.SetActive(false);   
+        focusPrompt.SetActive(true);   
     }
     
     void Update()
@@ -66,6 +69,9 @@ public class MonitorFocus : MonoBehaviour
         
         // update computer screen focus state.
         computerScreen.SetFocused(isFocused);
+        
+        // update sitting state from computer interaction.
+        isSitting = computerInteraction.IsSitting();
     }
     
     // ----------------------------------------------------------- check for hover of monitor.
@@ -100,7 +106,7 @@ public class MonitorFocus : MonoBehaviour
             if (!isHoveringLastFrame) focusPrompt.SetActive(true);
             
             // check for mouse click while hovering.
-            if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
+            if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame && isSitting)
             {
                 // if we're not focused & not transitioning, start focus.
                 if (!isFocused && !isTransitioning)

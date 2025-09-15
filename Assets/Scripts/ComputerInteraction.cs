@@ -148,5 +148,10 @@ namespace Seagull.Interior_01 {
             
             yield return null;
         }
+        
+        // -------------------------------------------------------- public method to check sitting state.
+        public bool IsSitting() {
+            return isSitting;
+        }
     }
 }

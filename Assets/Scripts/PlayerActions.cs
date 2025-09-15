@@ -3,63 +3,84 @@ using UnityEngine;
 
 public class PlayerActions : MonoBehaviour
 {
-    [SerializeField] private GameObject UseTest;
-    [SerializeField] private Transform Camera;
-    [SerializeField] private float MaxUseDistance = 5f;
-    [SerializeField] private LayerMask UseLayers;
+    [Header("Interaction Settings")]
+    [SerializeField] private GameObject interactionPrompt;    // UI prompt object.
+    [SerializeField] private Transform camera;                // camera for raycast.
+    [SerializeField] private LayerMask useLayers;             // layers that can be interacted with.
 
-    public void OnUse(){
-        if (Physics.Raycast(Camera.position, Camera.forward, out RaycastHit hit, MaxUseDistance, UseLayers)){
-            Debug.Log($"Raycast hit: {hit.collider.name} on layer {LayerMask.LayerToName(hit.collider.gameObject.layer)}");
-            
-            if (hit.collider.TryGetComponent<Door>(out Door door)){
-                Debug.Log("Door component found!");
-                if (door.isOpen){
-                    door.Close();
-                }
-                else {
-                    door.Open(transform.position);
+    private float maxUseDistance = 5f;                        // max interaction range.
+    private TextMeshPro promptText;                           // text component for prompts.
+    private IInteractable currentInteractable;                // currently hovered interactable.
+
+    // -------------------------------------------------------- before first frame.
+    void Start()
+    {
+        // get text component from prompt object.
+        promptText = interactionPrompt.GetComponent<TextMeshPro>();
+        
+        // hide prompt at start.
+        interactionPrompt.SetActive(false);
+    }
+
+    // -------------------------------------------------------- every frame.
+    void Update()
+    {
+        CheckForInteractables();
+    }
+
+    // -------------------------------------------------------- check for interactables in range.
+    void CheckForInteractables()
+    {
+        // raycast from camera forward.
+        if (Physics.Raycast(camera.position, camera.forward, out RaycastHit hit, maxUseDistance, useLayers))
+        {
+            // check if hit object has interactable component.
+            if (hit.collider.TryGetComponent<IInteractable>(out IInteractable interactable))
+            {
+                // if different interactable, update current.
+                if (currentInteractable != interactable)
+                {
+                    currentInteractable = interactable;
+                    ShowPrompt(interactable.GetPromptText());
                 }
             }
-            else {
-                Debug.Log("No Door component found on hit object");
+            else
+            {
+                // no interactable found, hide prompt.
+                HidePrompt();
             }
         }
-        else {
-            Debug.Log("No raycast hit within range");
+        else
+        {
+            // nothing hit, hide prompt.
+            HidePrompt();
         }
     }
 
-    private void Update(){
-        if (Physics.Raycast(Camera.position, Camera.forward, out RaycastHit hit, MaxUseDistance, UseLayers)){
-            Debug.Log($"Update raycast hit: {hit.collider.name}");
-            
-            if (hit.collider.TryGetComponent<Door>(out Door door)){
-                Debug.Log("Door found in Update - showing UI");
-                
-                // Get the TextMeshPro component from the GameObject
-                TextMeshPro textMesh = UseTest.GetComponent<TextMeshPro>();
-                if (textMesh != null){
-                    if (door.isOpen){
-                        textMesh.SetText("Close \"E\"");
-                        Debug.Log("Set text to: Close \"E\"");
-                    }
-                    else {
-                        textMesh.SetText("Open \"E\"");
-                        Debug.Log("Set text to: Open \"E\"");
-                    }
-                }
-                
-                UseTest.SetActive(true);
-                Debug.Log($"UI Text active: {UseTest.activeInHierarchy}");
-            }
-            else {
-                Debug.Log("No Door component found in Update");
-                UseTest.SetActive(false);
-            }
-        }
-        else {
-            UseTest.SetActive(false);
-        }
+    // -------------------------------------------------------- show interaction prompt.
+    void ShowPrompt(string text)
+    {
+        promptText.SetText(text);
+        interactionPrompt.SetActive(true);
     }
+
+    // -------------------------------------------------------- hide interaction prompt.
+    void HidePrompt()
+    {
+        interactionPrompt.SetActive(false);
+        currentInteractable = null;
+    }
+
+    // -------------------------------------------------------- called when use key is pressed.
+    public void OnUse()
+    {
+        currentInteractable.Interact(transform.position);
+    }
+}
+
+// -------------------------------------------------------- interface for all interactable objects.
+public interface IInteractable
+{
+    void Interact(Vector3 playerPosition);
+    string GetPromptText();
 }
