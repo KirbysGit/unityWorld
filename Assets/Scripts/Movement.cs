@@ -44,15 +44,16 @@ public class Movement : MonoBehaviour
     float jumpVelocity;
 
     // movement & cursor.
-    bool cursorLock = true;     
     CharacterController controller;
     Vector2 currentDir;
     Vector2 currentDirVelocity;
     float currentSpeed;
     
     // mouse look.
-    float mouseSensitivity = 4f;     // how fast the character turns.
     float mouseX;                    // horizontal mouse input.
+    
+    // cursor following.
+    float cursorFollowSpeed = 5f;    // how fast character follows cursor.
 
     // -------------------------------------------------------- Before First Frame.
     private void Start()
@@ -65,13 +66,13 @@ public class Movement : MonoBehaviour
 
         // set 3D cam.
         threeDCam.gameObject.SetActive(true);
-
-        // locks cursor.
-        if (cursorLock)
-        {
-            Cursor.lockState = CursorLockMode.Locked; // middle of screen.
-            Cursor.visible = false;                   // not visible.
-        }
+        
+        // enable cursor for 3D camera mode.
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+        
+        // set cursor follow speed.
+        cursorFollowSpeed = 8f;
     }
 
     // -------------------------------------------------------- Every Frame.
@@ -84,18 +85,38 @@ public class Movement : MonoBehaviour
     // -------------------------------------------------------- update mouse look.
     void UpdateMouseLook()
     {
-        // get mouse input.
+        if (characterModel == null) return;
+        
+
+        UpdateCursorFollowing();
+
+    }
+    
+    // -------------------------------------------------------- cursor following mode.
+    void UpdateCursorFollowing()
+    {
+        // get cursor position using new Input System.
         if (Mouse.current != null)
         {
-            mouseX = Mouse.current.delta.x.ReadValue();    // horizontal mouse movement.
-        }
-        
-        // rotate only the character model based on mouse movement.
-        if (characterModel != null)
-        {
-            characterModel.Rotate(Vector3.up * mouseX * mouseSensitivity * Time.deltaTime);
+            Vector2 mousePosition = Mouse.current.position.ReadValue();
+            Vector3 mousePosition3D = new Vector3(mousePosition.x, mousePosition.y, 10f); // distance from camera.
+            
+            // convert screen position to world position.
+            Vector3 worldPosition = threeDCam.GetComponent<Camera>().ScreenToWorldPoint(mousePosition3D);
+            
+            // calculate direction from character to cursor.
+            Vector3 direction = (worldPosition - characterModel.position).normalized;
+            direction.y = 0; // keep character upright.
+            
+            if (direction != Vector3.zero)
+            {
+                // smoothly rotate character to face cursor direction.
+                Quaternion targetRotation = Quaternion.LookRotation(direction);
+                characterModel.rotation = Quaternion.Slerp(characterModel.rotation, targetRotation, cursorFollowSpeed * Time.deltaTime);
+            }
         }
     }
+
 
     // -------------------------------------------------------- update movement.
     void UpdateMove()
@@ -200,5 +221,13 @@ public class Movement : MonoBehaviour
         rightArm.localEulerAngles = Vector3.zero;
         leftLeg.localEulerAngles = Vector3.zero;
         rightLeg.localEulerAngles = Vector3.zero;
+    }
+    
+    // -------------------------------------------------------- cursor control methods.
+    
+    public void DisableCursor()
+    {
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 }

@@ -12,7 +12,6 @@ public class Door : MonoBehaviour, IInteractable
         private set { _isOpen = value; }
     }
     
-    private bool isRotatingDoor = true;
     private float speed = 1f;
     private float rotationAmount = 90f;
     private float ForwardDirection = 0;
@@ -32,6 +31,8 @@ public class Door : MonoBehaviour, IInteractable
     // -------------------------------------------------------- IInteractable implementation.
     public void Interact(Vector3 playerPosition)
     {
+        Debug.Log($"DOOR INTERACT: {gameObject.name} - Player interacted with door!");
+        
         if (isOpen)
         {
             Close();
