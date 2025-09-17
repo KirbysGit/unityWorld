@@ -44,7 +44,6 @@ public class MonitorController : MonoBehaviour
         // Update screen appearance
         UpdateScreenAppearance();
         
-        Debug.Log($"Monitor Controller: Monitor turned {(on ? "ON" : "OFF")}");
     }
     
     void UpdateScreenAppearance()

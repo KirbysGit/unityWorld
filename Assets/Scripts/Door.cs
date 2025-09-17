@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class Door : MonoBehaviour, IInteractable
 {
+    [SerializeField] private GameObject interactionPrompt;
+    
     private bool _isOpen = false;
     
     public bool isOpen 
@@ -31,7 +33,6 @@ public class Door : MonoBehaviour, IInteractable
     // -------------------------------------------------------- IInteractable implementation.
     public void Interact(Vector3 playerPosition)
     {
-        Debug.Log($"DOOR INTERACT: {gameObject.name} - Player interacted with door!");
         
         if (isOpen)
         {
@@ -46,7 +47,8 @@ public class Door : MonoBehaviour, IInteractable
     // -------------------------------------------------------- open the door.
     public void Open(Vector3 UserPosition){
         if (!isOpen){
-            StopCoroutine(AnimationCoroutine);
+            if (AnimationCoroutine != null)
+                StopCoroutine(AnimationCoroutine);
             float dot = Vector3.Dot(Forward, (UserPosition - transform.position).normalized);
             AnimationCoroutine = StartCoroutine(DoRotationOpen(dot));
         }
@@ -77,8 +79,8 @@ public class Door : MonoBehaviour, IInteractable
 
     public void Close(){
         if(isOpen){
-            StopCoroutine(AnimationCoroutine);
-
+            if (AnimationCoroutine != null)
+                StopCoroutine(AnimationCoroutine);
             AnimationCoroutine = StartCoroutine(DoRotationClose());
         }
     }
@@ -100,5 +102,23 @@ public class Door : MonoBehaviour, IInteractable
     public string GetPromptText()
     {
         return isOpen ? "Close \"E\"" : "Open \"E\"";
+    }
+
+    public void ShowPrompt()
+    {
+        // set prompt to true.
+        interactionPrompt.SetActive(true);
+
+        // make prompt face the camera.
+        if (Camera.main != null)
+        {
+            interactionPrompt.transform.LookAt(Camera.main.transform);
+            interactionPrompt.transform.Rotate(0, 180, 0); // Flip to face camera properly
+        }
+    }
+
+    public void HidePrompt()
+    {
+        interactionPrompt.SetActive(false);
     }
 }

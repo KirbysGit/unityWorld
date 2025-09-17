@@ -14,3 +14,9 @@ Where scripts are attached :
 
 
 .SetActive -> Boolean for GameObjs.
+
+
+leaving off right now just trying to understand what i really want, at this point im just messing around in unity not making progress towards anything
+
+i had a great time learning and ill come back, but i think when you come back you'll probably want a fresh start so this will just be a learning point 
+that you can reference, so yea brody, from kirby on 9/16/2025 at 11:32 pm, good luck!!

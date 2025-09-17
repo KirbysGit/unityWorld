@@ -5,15 +5,15 @@ using UnityEngine.InputSystem;
 public class PlayerActions : MonoBehaviour
 {
     [Header("Interaction Settings")]
-    [SerializeField] private GameObject interactionPrompt;    // UI prompt object.
-    [SerializeField] private Transform playerCamera;          // camera for raycast.
-    [SerializeField] private LayerMask useLayers;             // layers that can be interacted with.
-    [SerializeField] private LayerMask hoverLayers = -1;      // layers for hover detection (default: all layers).
+    [SerializeField] private GameObject interactionPrompt;    
+    [SerializeField] private Transform playerCamera;         
+    [SerializeField] private LayerMask useLayers;            
+    [SerializeField] private LayerMask hoverLayers = -1;      
     
-    private float hoverRange = 50f;          // max hover detection range (increased for testing).
-    private TextMeshPro promptText;                           // text component for prompts.
-    private IInteractable currentInteractable;                // currently hovered interactable.
-    private OutlineHover currentHoveredObject;                // currently hovered object for outline.
+    private float hoverRange = 50f;         
+    private TextMeshPro promptText;                          
+    private IInteractable currentInteractable;               
+    private OutlineHover currentHoveredObject;               
 
     // -------------------------------------------------------- before first frame.
     void Start()
@@ -39,15 +39,16 @@ public class PlayerActions : MonoBehaviour
         Ray ray = playerCamera.GetComponent<Camera>().ScreenPointToRay(mousePosition);
         RaycastHit hit;
         
-        
+        // check if raycast hits any objects in hoverLayers.
         if (Physics.Raycast(ray, out hit, hoverRange, hoverLayers))
         {
             // check for outline hover component.
             OutlineHover outlineHover = hit.collider.GetComponent<OutlineHover>();
-            // update outline hover.
+
+            // update outline hover if not already hovered.
             if (outlineHover != null && currentHoveredObject != outlineHover)
             {
-                // remove hover from previous object.
+                // remove hover from previous object if not null.
                 if (currentHoveredObject != null)
                     currentHoveredObject.SetHovered(false);
                 
@@ -59,11 +60,20 @@ public class PlayerActions : MonoBehaviour
             // check if hit object has interactable component.
             if (hit.collider.TryGetComponent<IInteractable>(out IInteractable interactable))
             {
-                // if different interactable, update current.
+                // if different interactable, update current interactable.
                 if (currentInteractable != interactable)
                 {
+                    if (currentInteractable != null && currentInteractable is Door previousDoor) 
+                    {
+                        previousDoor.HidePrompt();
+                    }
+
                     currentInteractable = interactable;
-                    ShowPrompt(interactable.GetPromptText());
+
+                    if (interactable is Door door)
+                    {
+                        door.ShowPrompt();
+                    }
                 }
             }
             else
@@ -83,32 +93,22 @@ public class PlayerActions : MonoBehaviour
     // -------------------------------------------------------- show interaction prompt.
     void ShowPrompt(string text)
     {
-        if (promptText != null && interactionPrompt != null)
-        {
-            promptText.SetText(text);
-            interactionPrompt.SetActive(true);
-        }
-        else
-        {
-            Debug.LogWarning("PlayerActions: promptText or interactionPrompt is null. Cannot show prompt.");
-        }
+        Debug.Log($"SHOW PROMPT: {text}");
+        promptText.SetText(text);
+        interactionPrompt.SetActive(true);
     }
 
     // -------------------------------------------------------- hide interaction prompt.
     void HidePrompt()
     {
-        if (interactionPrompt != null)
-        {
-            interactionPrompt.SetActive(false);
-        }
+        interactionPrompt.SetActive(false);
         currentInteractable = null;
     }
     
     // -------------------------------------------------------- remove hover effect.
     void RemoveHoverEffect()
     {
-        if (currentHoveredObject != null)
-        {
+        if (currentHoveredObject != null) {
             currentHoveredObject.SetHovered(false);
             currentHoveredObject = null;
         }
